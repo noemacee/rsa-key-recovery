@@ -1,5 +1,6 @@
 import random
-from math import gcd
+from math import gcd, ceil
+import base64
 
 
 # Function to test if a number is prime using Miller-Rabin primality test
@@ -98,7 +99,7 @@ def generate_keypair(bits):
     
     bits: int - the bit length of the prime numbers to generate
 
-    output: tuple - the public key (e, n) and the private key (p, q, phi, d)
+    output: tuple - the public and private keys in the format ((e, n), (p, q, d, qinv, pinv))
     """
     p = generate_prime(bits)
     q = generate_prime(bits)
@@ -112,12 +113,62 @@ def generate_keypair(bits):
         e = random.randrange(2, phi)
 
     d = mod_inverse(e, phi)
+
+
+    qinv = mod_inverse(q, p)
+    pinv = mod_inverse(p, q)
+
+
     public_key = (e, n)
-    private_key = (p, q, phi, d)
+    private_key = (p, q, d, qinv, pinv)
     return public_key, private_key
 
 def encrypt(public_key, plaintext):
-    # Use the CRT to speed up the encryption
+    """ 
+    Encrypt plaintext using the public key. 
+    
+    public_key: tuple - the public key in the format (e, n)
+    plaintext: str - the plaintext to encrypt
+
+    output: int - the encrypted ciphertext
+    """
+    e, n = public_key
+    # Encode the plaintext using base64 to ensure it's in a standard ASCII representation
+    plaintext_bytes = base64.b64encode(plaintext.encode('utf-8'))
+    plaintext_int = int.from_bytes(plaintext_bytes, 'big')
+    # Encrypt the integer
+    ciphertext = pow(plaintext_int, e, n)
+    return ciphertext
 
 def decrypt(private_key, ciphertext):
-    # Use the CRT to speed up the decryption
+    """ Decrypt ciphertext using the private key with CRT. """
+    p, q, d, qinv, pinv = private_key
+    # Compute m_p and m_q
+    m_p = pow(ciphertext, d, p)
+    m_q = pow(ciphertext, d, q)
+    # Combine results using CRT
+    m = (m_p * q * qinv + m_q * p * pinv) % (p * q)
+    
+    
+    num_bytes = ceil(m.bit_length() / 8)
+    
+    # Convert decrypted integer back to bytes and decode from base64
+    decrypted_bytes = m.to_bytes(num_bytes, 'big')
+    plaintext = base64.b64decode(decrypted_bytes).decode('utf-8')
+    return plaintext
+
+if __name__ == "__main__":
+    bits = 512  # number of bits for prime generation
+    public_key, private_key = generate_keypair(bits)
+    
+    print(f"Public Key: {public_key}")
+    print(f"Private Key: {private_key}")
+
+    message = "Hello RSA!"
+    print(f"Original Message: {message}")
+
+    encrypted_msg = encrypt(public_key, message)
+    print(f"Encrypted Message: {encrypted_msg}")
+
+    decrypted_msg = decrypt(private_key, encrypted_msg)
+    print(f"Decrypted Message: {decrypted_msg}")
