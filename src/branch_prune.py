@@ -26,6 +26,10 @@ def initialize_bits(known_bit, bit_length):
 
 
 def is_valid(p_bits, q_bits, i, N):
+
+    p_bits = bits_to_int(p_bits)
+    q_bits = bits_to_int(q_bits)
+
     return (p_bits * q_bits) % (1 << (i + 1)) == N % (1 << (i + 1))
 
 
@@ -33,6 +37,18 @@ def set_bit(bits, bit_pos, value):
     new_bits = bits[:]
     new_bits[bit_pos] = value
     return new_bits
+
+def bits_to_int(bits):
+    """
+    Convert a list of bit values (0 or 1) to an integer.
+
+    :param bits: List of bit values (0 or 1).
+    :return: Integer value of the bit sequence.
+    """
+    value = 0
+    for bit in bits[::-1]:
+        value = (value << 1) | bit
+    return value
 
 
 def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
@@ -48,41 +64,49 @@ def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
         node = stack.pop()
         i = node.bit_pos
 
-        if i == bit_length + 1: ## DNF
-            continue
+        
 
-        valid_children = []
+        
+        if node.bit_pos == bit_length:
+            p = node.p_bits
+            q = node.q_bits
+            if p * q == N:
+                return (p, q)
 
-        def add_child_and_prune(p_bits, q_bits):
-            if is_valid(p_bits, q_bits, i, N):
-                child_node = TreeNode(p_bits, q_bits, i + 1)
-                valid_children.append(child_node)
-                stack.append(child_node)
+        elif node.bit_pos < bit_length: 
 
-        if node.p_bits[i] == -1 and node.q_bits[i] == -1:
-            for bit_p in [0, 1]:
-                for bit_q in [0, 1]:
+            valid_children = []
+
+            def add_child_and_prune(p_bits, q_bits):
+                if is_valid(p_bits, q_bits, i, N):
+                    child_node = TreeNode(p_bits, q_bits, i + 1)
+                    valid_children.append(child_node)
+                    stack.append(child_node)
+
+            if node.p_bits[i] == -1 and node.q_bits[i] == -1 :
+                for bit_p in [0, 1]:
+                    for bit_q in [0, 1]:
+                        p_bits_new = set_bit(node.p_bits, i, bit_p)
+                        q_bits_new = set_bit(node.q_bits, i, bit_q)
+                        add_child_and_prune(p_bits_new, q_bits_new)
+            elif node.p_bits[i] == -1:
+                for bit_p in [0, 1]:
                     p_bits_new = set_bit(node.p_bits, i, bit_p)
-                    q_bits_new = set_bit(node.q_bits, i, bit_q)
+                    q_bits_new = node.q_bits
                     add_child_and_prune(p_bits_new, q_bits_new)
-        elif node.p_bits[i] == -1:
-            for bit_p in [0, 1]:
-                p_bits_new = set_bit(node.p_bits, i, bit_p)
+            elif node.q_bits[i] == -1:
+                for bit_q in [0, 1]:
+                    q_bits_new = set_bit(node.q_bits, i, bit_q)
+                    p_bits_new = node.p_bits
+                    add_child_and_prune(p_bits_new, q_bits_new)
+            else:
+                p_bits_new = node.p_bits
                 q_bits_new = node.q_bits
                 add_child_and_prune(p_bits_new, q_bits_new)
-        elif node.q_bits[i] == -1:
-            for bit_q in [0, 1]:
-                q_bits_new = set_bit(node.q_bits, i, bit_q)
-                p_bits_new = node.p_bits
-                add_child_and_prune(p_bits_new, q_bits_new)
-        else:
-            p_bits_new = node.p_bits
-            q_bits_new = node.q_bits
-            add_child_and_prune(p_bits_new, q_bits_new)
 
-        node.children = valid_children
+            node.children = valid_children
 
-    return root
+    return None
 
 
 def find_solutions(node, solutions, N, bit_length):
@@ -99,23 +123,9 @@ def find_solutions(node, solutions, N, bit_length):
 
 
 def branch_and_prune(N, known_bits_p, known_bits_q, bit_length):
-    root = build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length)
-    solutions = []
-    find_solutions(root, solutions, N, bit_length)
-    return solutions
+    (p,q) = build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length)
 
-
-def print_tree(node, bit_length, indent=""):
-    if node.bit_pos == bit_length:
-        p = int("".join(['0' if bit == -1 else str(bit) for bit in node.p_bits[::-1]]), 2)
-        q = int("".join(['0' if bit == -1 else str(bit) for bit in node.q_bits[::-1]]), 2)
-        print(f"{indent}Node: p={p}, q={q}")
-        return
-    p_bits_str = "".join(['?' if bit == -1 else str(bit) for bit in node.p_bits[::-1]])
-    q_bits_str = "".join(['?' if bit == -1 else str(bit) for bit in node.q_bits[::-1]])
-    print(f"{indent}Node: p_bits={p_bits_str}, q_bits={q_bits_str}, bit_pos={node.bit_pos}")
-    for child in node.children:
-        print_tree(child, bit_length, indent + "  ")
+    return (p,q)
 
 
 # Example usage
@@ -126,14 +136,16 @@ known_bits_q = [-1,1,-1,0,-1]
 # Calculate the bit length of the factors
 bit_length = max(len(known_bits_p), len(known_bits_q))
 
+# Optional: Print the tree structure for debugging
+n = build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length)
 
-
-
-solutions = branch_and_prune(N, known_bits_p, known_bits_q, bit_length)
-for p, q in solutions:
+if n is None : 
+    print("No solution found")
+else:
+    (p,q) = n
     print(f"Recovered p: {p}")
     print(f"Recovered q: {q}")
 
-# Optional: Print the tree structure for debugging
-root = build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length)
-print_tree(root, bit_length)
+
+
+
