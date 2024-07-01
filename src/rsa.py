@@ -141,7 +141,14 @@ def encrypt(public_key, plaintext):
     return ciphertext
 
 def decrypt(private_key, ciphertext):
-    """ Decrypt ciphertext using the private key with CRT. """
+    """ 
+    Decrypt ciphertext using the private key with CRT. 
+    
+    private_key: tuple - the private key in the format (p, q, d, qinv, pinv)
+    ciphertext: int - the ciphertext to decrypt
+
+    output: str - the decrypted plaintext
+    """
     p, q, d, qinv, pinv = private_key
     # Compute m_p and m_q
     m_p = pow(ciphertext, d, p)
