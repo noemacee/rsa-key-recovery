@@ -69,17 +69,16 @@ def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
         node = stack.pop()
         i = node.bit_pos
         print(i, "i")
-
         
 
-        
-        if node.bit_pos == bit_length:
-            p = node.p_bits
-            q = node.q_bits
-            if p * q == N:
-                return (p, q)
+            
+        if node.bit_pos == bit_length: 
+            if is_valid(node.p_bits,node.q_bits,node.bit_pos,N):
+                return (node.p_bits, node.q_bits)
 
         elif node.bit_pos < bit_length: 
+            node.p_bits = set_bit(node.p_bits,i,known_bits_p[i])
+            node.q_bits = set_bit(node.q_bits,i,known_bits_q[i])
 
             valid_children = []
 
