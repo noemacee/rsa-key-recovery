@@ -19,9 +19,10 @@ def initialize_bits(known_bit, bit_length):
     :param bit_length: The total length of the bit sequence.
     :return: A list of integers where known bits are represented by 0 or 1 and unknown bits by -1.
     """
-    bits = [0] * bit_length  # Initialize all bits to -1
-    if known_bit != -1:
-        bits[0] = int(known_bit)
+    bits = [0] * bit_length  # Initialize all bits to 0
+    
+    bits[0] = known_bit
+        
     return bits
 
 
@@ -52,8 +53,12 @@ def bits_to_int(bits):
 
 
 def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
+    known_bits_p = known_bits_p[::-1] ## Reverse the list
+    known_bits_q = known_bits_q[::-1] ## Reverse the list
+    
     p_init = initialize_bits(known_bits_p[0], bit_length)
     q_init = initialize_bits(known_bits_q[0], bit_length)
+    print(p_init, q_init, "p_init, q_init")
 
     stack = []
     root = TreeNode(p_init, q_init, 0)
@@ -63,6 +68,7 @@ def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
     while stack:
         node = stack.pop()
         i = node.bit_pos
+        print(i, "i")
 
         
 
@@ -89,22 +95,27 @@ def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
                         p_bits_new = set_bit(node.p_bits, i, bit_p)
                         q_bits_new = set_bit(node.q_bits, i, bit_q)
                         add_child_and_prune(p_bits_new, q_bits_new)
+                print("a")
             elif node.p_bits[i] == -1:
                 for bit_p in [0, 1]:
                     p_bits_new = set_bit(node.p_bits, i, bit_p)
                     q_bits_new = node.q_bits
                     add_child_and_prune(p_bits_new, q_bits_new)
+                    print("d")
             elif node.q_bits[i] == -1:
                 for bit_q in [0, 1]:
                     q_bits_new = set_bit(node.q_bits, i, bit_q)
                     p_bits_new = node.p_bits
                     add_child_and_prune(p_bits_new, q_bits_new)
+                    print("e")
             else:
                 p_bits_new = node.p_bits
                 q_bits_new = node.q_bits
                 add_child_and_prune(p_bits_new, q_bits_new)
+                print("f")
 
             node.children = valid_children
+            print(node.children)
 
     return None
 
