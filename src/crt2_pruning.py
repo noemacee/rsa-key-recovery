@@ -264,6 +264,8 @@ def verify_dp_dq(dp, dq, p, q, e):
     return True
 
 
+print("CRT2 Pruning")
+
 # Example usage
 N = 899
 e = 17

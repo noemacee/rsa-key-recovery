@@ -3,9 +3,11 @@ from sympy import mod_inverse
 
 
 class TreeNode:
-    def __init__(self, dp_bits, dq_bits, bit_pos):
+    def __init__(self, dp_bits, dq_bits, bit_pos, p_bits, q_bits):
         self.dp_bits = dp_bits
         self.dq_bits = dq_bits
+        self.p_bits = [0] * dp_bits.bit_length()
+        self.q_bits = [0] * dq_bits.bit_length()
         self.bit_pos = bit_pos
         self.children = []
 
@@ -48,6 +50,11 @@ def find_kq_from_kp(kp, N, e):
     kq = (rhs * lhs_inv) % e
     return kq
 
+def find_prime_factors(i, e, dprime, kprime):
+    p = (dprime * e - 1) // i + 1
+    q = (kprime * e - 1) // i + 1
+    return p, q
+
 def check_kq(kp, kq, N, e):
     left_hand_side = (kp - 1) * (kq - 1) % e
     right_hand_side = kp * kq * N % e
@@ -80,49 +87,10 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
         node = stack.pop()
         dp, dq, i = node.dp_bits, node.dq_bits, node.bit_pos
 
-        if i == bit_length:
-            if is_valid(dp, dq, i, N):
-                return dp, dq
-
-        elif i < bit_length:
-            dp = set_bit(dp, i, known_bits_dp[i])
-            dq = set_bit(dq, i, known_bits_dq[i])
-
-            valid_children = []
-
-            def add_child_and_prune(dp_bits, dq_bits):
-                if is_valid(dp_bits, dq_bits, i, N):
-                    child_node = TreeNode(dp_bits, dq_bits, i + 1)
-                    valid_children.append(child_node)
-                    stack.append(child_node)
-
-            if dp[i] == -1 and dq[i] == -1:
-                for bit_dp in [0, 1]:
-                    for bit_dq in [0, 1]:
-                        dp_bits_new = set_bit(dp, i, bit_dp)
-                        dq_bits_new = set_bit(dq, i, bit_dq)
-                        add_child_and_prune(dp_bits_new, dq_bits_new)
-
-            elif dp[i] == -1:
-                for bit_dp in [0, 1]:
-                    dp_bits_new = set_bit(dp, i, bit_dp)
-                    dq_bits_new = dq
-                    add_child_and_prune(dp_bits_new, dq_bits_new)
-
-            elif dq[i] == -1:
-                for bit_dq in [0, 1]:
-                    dq_bits_new = set_bit(dq, i, bit_dq)
-                    dp_bits_new = dp
-                    add_child_and_prune(dp_bits_new, dq_bits_new)
-
-            else:
-                add_child_and_prune(dp, dq)
-
-            node.children = valid_children
-
     return None
 
 def verify_dp_dq(dp, dq, p, q, e):
+    
     if (e * dp) % (p - 1) != 1:
         print("edp ≡ 1 mod (p-1) failed")
         print((e * dp) % (p - 1),)
@@ -160,8 +128,10 @@ if result is None:
     print("No solution found")
 else:
     dp, dq = result
-    dp_int = bits_to_int(dp)
-    dq_int = bits_to_int(dq)
+    dp_int = bits_to_int(dp[::-1])
+    dq_int = bits_to_int(dq[::-1])
+   
+
     p_int = 29
     q_int = 31
 

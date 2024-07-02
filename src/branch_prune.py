@@ -224,6 +224,19 @@ def erase_bits(bits, revealrate):
     return [bit if random.random() < revealrate else -1 for bit in bits]    
 
 
+def int_to_bits(value):
+    """
+    Convert an integer to a list of bits.
+
+    :param value: Integer value to convert.
+    :param bit_length: The desired bit length of the output.
+    :return: List of bits representing the integer value.
+    """
+    # Convert p and q to binary lists
+    bits = [int(bit) for bit in bin(value)[2:]]
+    return bits
+
+
 def example_generator(reveal_rate, bit_size):
     """
     Generate example p and q values, calculate N, and erase bits according to the reveal rate.
@@ -240,8 +253,10 @@ def example_generator(reveal_rate, bit_size):
     N = p * q
 
     # Convert p and q to binary lists
-    p_bits = [int(bit) for bit in bin(p)[2:]]
-    q_bits = [int(bit) for bit in bin(q)[2:]]
+    p_bits = int_to_bits(p)
+    q_bits = int_to_bits(q)
+    
+    
 
     # Pad p_bits and q_bits to the same length
     p_bits, q_bits = padding_input(p_bits, q_bits)
