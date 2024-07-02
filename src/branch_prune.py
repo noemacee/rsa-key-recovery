@@ -66,7 +66,7 @@ def bits_to_int(bits):
     return value
 
 
-def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
+def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q):
     """
     Build the tree and prune invalid branches using DFS to find p and q.
 
@@ -76,6 +76,15 @@ def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
     :param bit_length: Length of the bit sequences
     :return: Tuple of bit sequences for p and q if found, None otherwise
     """
+    bit_length = max(len(known_bits_p), len(known_bits_q))
+
+    # Pads the shorter array with leading zeros to match the length of the longer array.
+    if len(known_bits_p) < bit_length:
+        known_bits_p = [0] * (bit_length - len(known_bits_p)) + known_bits_p
+    if len(known_bits_q) < bit_length:
+        known_bits_q = [0] * (bit_length - len(known_bits_q)) + known_bits_q
+
+
     known_bits_p = known_bits_p[::-1] ## Reverse the list
     known_bits_q = known_bits_q[::-1] ## Reverse the list
     
@@ -132,7 +141,7 @@ def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
 
     return None
 
-def branch_and_prune(N, known_bits_p, known_bits_q, bit_length):
+def branch_and_prune(N, known_bits_p, known_bits_q):
     """
     Branch and prune algorithm to factorize N, knowing non-consecutive bits of the secret values p and q
 
@@ -142,19 +151,17 @@ def branch_and_prune(N, known_bits_p, known_bits_q, bit_length):
     :param bit_length: Length of the bit sequences of p and q
     :return: Tuple of bit sequences for p and q if found, None otherwise
     """
-    return build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length)
+    return build_tree_and_prune_dfs(N, known_bits_p, known_bits_q)
 
 
-# Example usage
+# Example usage 1
 N = 899
 known_bits_p = [-1,1,1,-1,1]
 known_bits_q = [-1,1,-1,0,-1]
 
-# Calculate the bit length of the factors
-bit_length = max(len(known_bits_p), len(known_bits_q))
 
 # Find the factors p and q
-result = branch_and_prune(N, known_bits_p, known_bits_q, bit_length)
+result = branch_and_prune(N, known_bits_p, known_bits_q)
 
 if result is None : 
     print("No solution found")
@@ -165,6 +172,30 @@ else:
     print(f"p as int: {bits_to_int(p)}")
     print(f"q as int: {bits_to_int(q)}")
 
+# Example usage 2
+N = 2053351
+
+# p is 1013: [1,1,1,1,1,1,0,1,0,1]
+known_bits_p = [1,-1,1,1,-1,-1,0,-1,-1,1]
+
+# q is 2027: [1,1,1,1,1,1,0,1,0,1,1]
+known_bits_q = [1,1,-1,1,1,-1,0,-1,-1,1,-1]
+
+
+# Find the factors p and q
+result = branch_and_prune(N, known_bits_p, known_bits_q)
+
+if result is None : 
+    print("No solution found")
+else:
+    p, q = result
+    print(f"Recovered p: {p[::-1]}")
+    print(f"Recovered q: {q[::-1]}")
+    print(f"p as int: {bits_to_int(p)}")
+    print(f"q as int: {bits_to_int(q)}")
+
+
+# Optional: write a function that produces examples with a given erasure rate, bit sice for p and q and use it to calculate statistics on how long it takes to factor given an errorrate
 
 
 
