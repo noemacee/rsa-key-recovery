@@ -1,4 +1,7 @@
 from math import ceil, log
+from rsa import generate_prime
+import random
+
 
 class TreeNode:
     def __init__(self, p_bits, q_bits, bit_pos):
@@ -22,6 +25,22 @@ def root_bits(lsb, bit_length):
     bits = [0] * bit_length  # Initialize all bits to 0
     bits[0] = lsb
     return bits
+
+def padding_input(known_bits_p, known_bits_q):
+    """
+    Pads the shorter array with leading zeros to match the length of the longer array.
+
+    :param known_bits_p: p bit array
+    :param known_bits_q: q bit array
+    :return: padded input
+    """
+    bit_length = max(len(known_bits_p), len(known_bits_q))
+    
+    if len(known_bits_p) < bit_length:
+        known_bits_p = [0] * (bit_length - len(known_bits_p)) + known_bits_p
+    if len(known_bits_q) < bit_length:
+        known_bits_q = [0] * (bit_length - len(known_bits_q)) + known_bits_q
+    return known_bits_p,known_bits_q
 
 
 def is_valid(p_bits, q_bits, i, N):
@@ -78,12 +97,7 @@ def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q):
     """
     bit_length = max(len(known_bits_p), len(known_bits_q))
 
-    # Pads the shorter array with leading zeros to match the length of the longer array.
-    if len(known_bits_p) < bit_length:
-        known_bits_p = [0] * (bit_length - len(known_bits_p)) + known_bits_p
-    if len(known_bits_q) < bit_length:
-        known_bits_q = [0] * (bit_length - len(known_bits_q)) + known_bits_q
-
+    known_bits_p, known_bits_q = padding_input(known_bits_p,known_bits_q)
 
     known_bits_p = known_bits_p[::-1] ## Reverse the list
     known_bits_q = known_bits_q[::-1] ## Reverse the list
@@ -155,6 +169,7 @@ def branch_and_prune(N, known_bits_p, known_bits_q):
 
 
 # Example usage 1
+print("Example 1 with N = 899 \n")
 N = 899
 known_bits_p = [-1,1,1,-1,1]
 known_bits_q = [-1,1,-1,0,-1]
@@ -173,6 +188,8 @@ else:
     print(f"q as int: {bits_to_int(q)}")
 
 # Example usage 2
+print("Example 2 with N = 2'053'351 \n")
+    
 N = 2053351
 
 # p is 1013: [1,1,1,1,1,1,0,1,0,1]
@@ -196,7 +213,72 @@ else:
 
 
 # Optional: write a function that produces examples with a given erasure rate, bit sice for p and q and use it to calculate statistics on how long it takes to factor given an errorrate
+def erase_bits(bits, revealrate):
+    """
+    Erase bits according to the reveal rate by setting them to -1.
+
+    :param bits: List of bits.
+    :param revealrate: The rate at which bits are revealed (0 to 1).
+    :return: List of bits with some bits erased.
+    """
+    return [bit if random.random() < revealrate else -1 for bit in bits]    
 
 
+def example_generator(reveal_rate, bit_size):
+    """
+    Generate example p and q values, calculate N, and erase bits according to the reveal rate.
 
+    :param reveal_rate: The rate at which bits are revealed (0 to 1).
+    :param bit_size: The desired bitsize for p and q.
+    :return: Tuple of (N, p_actual, q_actual, p_erased, q_erased)
+    """
+    # Generate p and q
+    p = generate_prime(bit_size)
+    q = generate_prime(bit_size)
+
+    # Calculate N
+    N = p * q
+
+    # Convert p and q to binary lists
+    p_bits = [int(bit) for bit in bin(p)[2:]]
+    q_bits = [int(bit) for bit in bin(q)[2:]]
+
+    # Pad p_bits and q_bits to the same length
+    p_bits, q_bits = padding_input(p_bits, q_bits)
+
+    # Erase bits according to the reveal rate
+    p_erased = erase_bits(p_bits, reveal_rate)
+    q_erased = erase_bits(q_bits, reveal_rate)
+
+    return N,p,q, p_bits, q_bits, p_erased, q_erased
+
+# Example 3 usage of example_generator
+print("\n Example 3 using example_generator \n")
+
+revealrate = 0.5
+bitsize = 10  # Use a small bitsize for demonstration purposes
+
+N,p,q, p_actual, q_actual, p_erased, q_erased = example_generator(revealrate, bitsize)
+
+print(f"N: {N}")
+print(f"p_actual: {p_actual}")
+print(f"p as int: {p}")
+
+print(f"q_actual: {q_actual}")
+print(f"q as int: {q}")
+
+print(f"p_erased: {p_erased}")
+print(f"q_erased: {q_erased}")
+
+# Find the factors p and q
+result = branch_and_prune(N, p_erased, q_erased)
+
+if result is None : 
+    print("No solution found")
+else:
+    p, q = result
+    print(f"Recovered p: {p[::-1]}")
+    print(f"Recovered q: {q[::-1]}")
+    print(f"p as int: {bits_to_int(p)}")
+    print(f"q as int: {bits_to_int(q)}")
 
