@@ -2,6 +2,7 @@ from math import ceil, log, gcd
 from rsa import generate_prime
 import random
 from sympy import mod_inverse
+from branch_prune import int_to_bits
 
 
 
@@ -36,6 +37,44 @@ def check_kq(kp, kq, N, e):
     left_hand_side = (kp - 1) * (kq - 1) % e
     right_hand_side = kp * kq * N % e
     return left_hand_side == right_hand_side
+
+def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
+    """
+    Calculate the bits of p and q for the given bit position i.
+
+    :param dp: The value of dp (d mod (p-1))
+    :param dq: The value of dq (d mod (q-1))
+    :param kp: The coefficient kp
+    :param kq: The coefficient kq
+    :param e: The public exponent
+    :param i: The bit position to consider
+    :return: The bits of p and q for the given bit position or None if no solution exists
+    """
+
+    # convert dp, dq,  to integers
+    dp = bits_to_int(dp)
+    dq = bits_to_int(dq)
+
+    # Calculate the right-hand sides of the congruences
+    rhs_p = (e * dp - 1 + kp) % (1 << i + 1)
+    rhs_q = (e * dq - 1 + kq) % (1 << i+ 1)
+
+    if gcd(kp, 1 << i + 1) != 1 or gcd(kq, 1 << i + 1) != 1:
+        return (None, None)
+    
+    # Find the inverses of kp and kq modulo 2^i
+    kp_inverse = mod_inverse(kp, 1 << i + 1)
+    kq_inverse = mod_inverse(kq, 1 << i + 1)
+
+    # Calculate the bits of p and q
+    p_bits = (kp_inverse * rhs_p) % (1 << i + 1)
+    q_bits = (kq_inverse * rhs_q) % (1 << i + 1)
+
+    p_bits = int_to_bits(p_bits)
+    q_bits = int_to_bits(q_bits)
+
+    
+    return p_bits, q_bits
 
 
 def root_bits(lsb, bit_length):
@@ -119,6 +158,12 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
     :param bit_length: Length of the bit sequences
     :return: Tuple of bit sequences for p and q if found, None otherwise
     """
+    
+    kq = find_kq_from_kp(kp, N, e)
+    if kq is None:
+        return None
+
+    
     bit_length = max(len(known_bits_dp), len(known_bits_dq))
 
     known_bits_dp, known_bits_dq = padding_input(known_bits_dp,known_bits_dq)
@@ -148,9 +193,11 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
             valid_children = []
 
             def add_child_and_prune(dp_bits, dq_bits):
-                p_bits = get_p_from_dp(dp_bits)
-                q_bits = get_q_from_dq(dq_bits)
-                if is_valid(p_bits, q_bits, i, N):
+                
+                
+                p_bits,q_bits = find_p_q_from_dp_dq(dp_bits, dq_bits, kp, kq, e, i)
+                
+                if p_bits is not None and q_bits is not None and is_valid(p_bits, q_bits, i, N):
                     child_node = TreeNode(p_bits, q_bits, dp_bits, dq_bits, i + 1)
                     valid_children.append(child_node)
                     stack.append(child_node)
@@ -183,7 +230,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
 
     return None
 
-def branch_and_prune(N, known_bits_p, known_bits_q):
+def branch_and_prune(N, e, known_bits_p, known_bits_q):
     """
     Branch and prune algorithm to factorize N, knowing non-consecutive bits of the secret values p and q
 
@@ -201,6 +248,20 @@ def branch_and_prune(N, known_bits_p, known_bits_q):
             return result
     return None
     
+def verify_dp_dq(dp, dq, p, q, e):
+    
+    if (e * dp) % (p - 1) != 1:
+        print("edp ≡ 1 mod (p-1) failed")
+        print((e * dp) % (p - 1),)
+        print (dp, "dp")
+        return False
+    if (e * dq) % (q - 1) != 1:
+        print("edq ≡ 1 mod (q-1) failed")
+        return False
+    if p * q != N:
+        print("p * q != N failed")
+        return False
+    return True
 
 
 # Example usage
@@ -214,21 +275,23 @@ known_bits_dq = [-1, -1, -1, 0, -1]
 
 result = branch_and_prune(N, e, known_bits_dp, known_bits_dq)
 
+
+
 if result is None:
     print("No solution found")
 else:
-    dp, dq = result
-    dp_int = bits_to_int(dp)
-    dq_int = bits_to_int(dq)
-    p_int = 29
-    q_int = 31
+    p, q, dp, dq = result
+    p = bits_to_int(p)
+    q = bits_to_int(q)
+    dp = bits_to_int(dp)
+    dq = bits_to_int(dq)
 
-    if verify_dp_dq(dp_int, dq_int, p_int, q_int, e):
+    print(f"Recovered p: {p}")
+    print(f"Recovered q: {q}")
+    print(f"Recovered dp: {dp}")
+    print(f"Recovered dq: {dq}")
+
+    if verify_dp_dq(dp, dq, p, q, e):
         print("The solution is coherent.")
-    else:
-        print("The solution is not coherent.")
 
-    print(f"Recovered dp: {dp[::-1]}")
-    print(f"Recovered dq: {dq[::-1]}")
-    print(f"dp as int: {bits_to_int(dp)}")
-    print(f"dq as int: {bits_to_int(dq)}")
+
