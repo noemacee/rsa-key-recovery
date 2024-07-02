@@ -11,23 +11,29 @@ class TreeNode:
         self.children.append(child_node)
 
 
-def initialize_bits(known_bit, bit_length):
+def root_bits(lsb, bit_length):
     """
-    Initialize the bit sequence with known and unknown bits.
+    Initialize the fist value of p or q to only zeros exept for the least significant bit
 
-    :param known_bits: A string representing known ('0' or '1') and unknown ('?') bits.
+    :param lsb: least significant bit
     :param bit_length: The total length of the bit sequence.
-    :return: A list of integers where known bits are represented by 0 or 1 and unknown bits by -1.
+    :return: A list of bits where all bits are zero exept for the lsb
     """
     bits = [0] * bit_length  # Initialize all bits to 0
-    
-    bits[0] = known_bit
-        
+    bits[0] = lsb
     return bits
 
 
 def is_valid(p_bits, q_bits, i, N):
+    """
+    Check if the current bit configuration of p_bits and q_bits is valid according to the integer relation N mod 2^i = p*q mod 2^i.
 
+    :param p_bits: Bits of p
+    :param q_bits: Bits of q
+    :param i: Current bit position
+    :param N: Public key to be factorized
+    :return: True if valid, False otherwise
+    """
     p_bits = bits_to_int(p_bits)
     q_bits = bits_to_int(q_bits)
 
@@ -35,6 +41,14 @@ def is_valid(p_bits, q_bits, i, N):
 
 
 def set_bit(bits, bit_pos, value):
+    """
+    Set the bit at the specified position to the given value.
+
+    :param bits: List of bit values
+    :param bit_pos: Position to set the bit
+    :param value: Value to set (0 or 1)
+    :return: New list of bits with the updated value
+    """
     new_bits = bits[:]
     new_bits[bit_pos] = value
     return new_bits
@@ -53,32 +67,34 @@ def bits_to_int(bits):
 
 
 def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
+    """
+    Build the tree and prune invalid branches using DFS to find p and q.
+
+    :param N: The product of p and q
+    :param known_bits_p: Known bits of p
+    :param known_bits_q: Known bits of q
+    :param bit_length: Length of the bit sequences
+    :return: Tuple of bit sequences for p and q if found, None otherwise
+    """
     known_bits_p = known_bits_p[::-1] ## Reverse the list
     known_bits_q = known_bits_q[::-1] ## Reverse the list
     
-    p_init = initialize_bits(known_bits_p[0], bit_length)
-    q_init = initialize_bits(known_bits_q[0], bit_length)
-    print(p_init, q_init, "p_init, q_init")
+    p_init = root_bits(known_bits_p[0], bit_length)
+    q_init = root_bits(known_bits_q[0], bit_length)
 
-    stack = []
-    root = TreeNode(p_init, q_init, 0)
-
-    stack.append(root)
+    stack = [TreeNode(p_init, q_init, 0)] ## Initialize the stack with the root
     
     while stack:
         node = stack.pop()
-        i = node.bit_pos
-        print(i, "i")
-        
+        p, q, i = node.p_bits, node.q_bits, node.bit_pos
+             
+        if i == bit_length:
+            if is_valid(p, q, i, N):
+                return p, q
 
-            
-        if node.bit_pos == bit_length: 
-            if is_valid(node.p_bits,node.q_bits,node.bit_pos,N):
-                return (node.p_bits, node.q_bits)
-
-        elif node.bit_pos < bit_length: 
-            node.p_bits = set_bit(node.p_bits,i,known_bits_p[i])
-            node.q_bits = set_bit(node.q_bits,i,known_bits_q[i])
+        elif i < bit_length:
+            p = set_bit(p, i, known_bits_p[i])
+            q = set_bit(q, i, known_bits_q[i])
 
             valid_children = []
 
@@ -88,54 +104,45 @@ def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length):
                     valid_children.append(child_node)
                     stack.append(child_node)
 
-            if node.p_bits[i] == -1 and node.q_bits[i] == -1 :
+            if p[i] == -1 and q[i] == -1:
                 for bit_p in [0, 1]:
                     for bit_q in [0, 1]:
-                        p_bits_new = set_bit(node.p_bits, i, bit_p)
-                        q_bits_new = set_bit(node.q_bits, i, bit_q)
+                        p_bits_new = set_bit(p, i, bit_p)
+                        q_bits_new = set_bit(q, i, bit_q)
                         add_child_and_prune(p_bits_new, q_bits_new)
-                print("a")
-            elif node.p_bits[i] == -1:
+              
+            elif p[i] == -1:
                 for bit_p in [0, 1]:
-                    p_bits_new = set_bit(node.p_bits, i, bit_p)
-                    q_bits_new = node.q_bits
+                    p_bits_new = set_bit(p, i, bit_p)
+                    q_bits_new = q
                     add_child_and_prune(p_bits_new, q_bits_new)
-                    print("d")
-            elif node.q_bits[i] == -1:
+               
+            elif q[i] == -1:
                 for bit_q in [0, 1]:
-                    q_bits_new = set_bit(node.q_bits, i, bit_q)
-                    p_bits_new = node.p_bits
+                    q_bits_new = set_bit(q, i, bit_q)
+                    p_bits_new = p
                     add_child_and_prune(p_bits_new, q_bits_new)
-                    print("e")
+              
             else:
-                p_bits_new = node.p_bits
-                q_bits_new = node.q_bits
-                add_child_and_prune(p_bits_new, q_bits_new)
-                print("f")
+                add_child_and_prune(p, q)
+            
 
             node.children = valid_children
-            print(node.children)
+         
 
     return None
 
-
-def find_solutions(node, solutions, N, bit_length):
-    if node.bit_pos == bit_length:
-        p = node.p_bits
-        q = node.q_bits
-
-        if p * q == N:
-            solutions.append((p, q))
-        return
-
-    for child in node.children:
-        find_solutions(child, solutions, N, bit_length)
-
-
 def branch_and_prune(N, known_bits_p, known_bits_q, bit_length):
-    (p,q) = build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length)
+    """
+    Branch and prune algorithm to factorize N, knowing non-consecutive bits of the secret values p and q
 
-    return (p,q)
+    :param N: The product of p and q
+    :param known_bits_p: Known bits of p
+    :param known_bits_q: Known bits of q
+    :param bit_length: Length of the bit sequences of p and q
+    :return: Tuple of bit sequences for p and q if found, None otherwise
+    """
+    return build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length)
 
 
 # Example usage
@@ -146,15 +153,18 @@ known_bits_q = [-1,1,-1,0,-1]
 # Calculate the bit length of the factors
 bit_length = max(len(known_bits_p), len(known_bits_q))
 
-# Optional: Print the tree structure for debugging
-n = build_tree_and_prune_dfs(N, known_bits_p, known_bits_q, bit_length)
+# Find the factors p and q
+result = branch_and_prune(N, known_bits_p, known_bits_q, bit_length)
 
-if n is None : 
+if result is None : 
     print("No solution found")
 else:
-    (p,q) = n
-    print(f"Recovered p: {p}")
-    print(f"Recovered q: {q}")
+    p, q = result
+    print(f"Recovered p: {p[::-1]}")
+    print(f"Recovered q: {q[::-1]}")
+    print(f"p as int: {bits_to_int(p)}")
+    print(f"q as int: {bits_to_int(q)}")
+
 
 
 
