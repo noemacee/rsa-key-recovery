@@ -120,6 +120,8 @@ def branch_and_prune(N, e, known_bits_p, known_bits_q):
     
 
 
+print("CRT2 Pruning")
+
 # Example usage
 N = 899
 e = 17
