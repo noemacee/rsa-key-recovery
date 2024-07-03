@@ -45,9 +45,6 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     rhs_q = ((e * dq) - 1 + kq) 
 
     if gcd(kp, 1 << (i + 1)) != 1 or gcd(kq, 1 << (i + 1)) != 1:
-        print(f"kp: {kp}")
-        print(f"kq: {kq}")
-        print(f"gdc with {1 << (i + 1)} is not 1")
         return (None, None)
     
     # Find the inverses of kp and kq modulo 2^i
@@ -64,18 +61,13 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     
     return p_bits, q_bits
 
-def verify_dp_dq(dp, dq, p, q, e):
+def verify_dp_dq(dp, dq, p, q, e, N):
     
     if (e * dp) % (p - 1) != 1:
-        print("edp ≡ 1 mod (p-1) failed")
-        print((e * dp) % (p - 1),)
-        print (dp, "dp")
         return False
     if (e * dq) % (q - 1) != 1:
-        print("edq ≡ 1 mod (q-1) failed")
         return False
     if p * q != N:
-        print("p * q != N failed")
         return False
     return True
 

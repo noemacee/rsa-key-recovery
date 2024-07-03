@@ -1,118 +1,130 @@
 from math import ceil, log, gcd
-from sympy import mod_inverse
-
+from rsa import generate_prime
+from rsa import mod_inverse
+from helpers import *
 
 class TreeNode:
-    def __init__(self, dp_bits, dq_bits, bit_pos, p_bits, q_bits):
+    def __init__(self, p_bits, q_bits, dp_bits, dq_bits, bit_pos):
+        self.p_bits = p_bits
+        self.q_bits = q_bits
         self.dp_bits = dp_bits
         self.dq_bits = dq_bits
-        self.p_bits = [0] * dp_bits.bit_length()
-        self.q_bits = [0] * dq_bits.bit_length()
         self.bit_pos = bit_pos
         self.children = []
 
     def add_child(self, child_node):
         self.children.append(child_node)
 
-def root_bits(lsb, bit_length):
-    bits = [0] * bit_length
-    bits[0] = lsb
-    return bits
-
-def is_valid(dp_bits, dq_bits, i, N):
-    dp = bits_to_int(dp_bits)
-    dq = bits_to_int(dq_bits)
-    result = (dp * dq) % (1 << (i + 1)) == N % (1 << (i + 1))
-    return result
-
-def set_bit(bits, bit_pos, value):
-    new_bits = bits[:]
-    new_bits[bit_pos] = value
-    return new_bits
-
-def bits_to_int(bits):
-    value = 0
-    for bit in bits[::-1]:
-        value = (value << 1) | bit
-    return value
-
-def find_kq_from_kp(kp, N, e):
-    lhs = kp - 1 - kp * N
-    rhs = kp - 1
-
-    if (gcd(lhs, e) != 1): # Check if lhs is invertible     
-        return None
-    
-    lhs_inv = mod_inverse(lhs, e)
-    if lhs_inv is None:
-        return None
-
-    kq = (rhs * lhs_inv) % e
-    return kq
-
-def find_prime_factors(i, e, dprime, kprime):
-    p = (dprime * e - 1) // i + 1
-    q = (kprime * e - 1) // i + 1
-    return p, q
-
-def check_kq(kp, kq, N, e):
-    left_hand_side = (kp - 1) * (kq - 1) % e
-    right_hand_side = kp * kq * N % e
-    return left_hand_side == right_hand_side
+    def __repr__(self):
+        return (f"TreeNode(p_bits={self.p_bits}, q_bits={self.q_bits}, "
+                f"dp_bits={self.dp_bits}, dq_bits={self.dq_bits}, bit_pos={self.bit_pos})")
 
 def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
+    """
+    Build the tree and prune invalid branches using DFS to find p and q.
+
+    :param N: The product of p and q
+    :param e: The public exponent
+    :param kp: Known bits of kp
+    :param known_bits_dp: Known bits of dp
+    :param known_bits_dq: Known bits of dq
+    :return: Tuple of bit sequences for p and q if found, None otherwise
+    """
     kq = find_kq_from_kp(kp, N, e)
-    
     if kq is None:
         return None
-
-
+    
     bit_length = max(len(known_bits_dp), len(known_bits_dq))
 
-    if len(known_bits_dp) < bit_length:
-        known_bits_dp = [0] * (bit_length - len(known_bits_dp)) + known_bits_dp
-    if len(known_bits_dq) < bit_length:
-        known_bits_dq = [0] * (bit_length - len(known_bits_dq)) + known_bits_dq
-
-    known_bits_dp = known_bits_dp[::-1]
-    known_bits_dq = known_bits_dq[::-1]
-
+    known_bits_dp, known_bits_dq = padding_input(known_bits_dp, known_bits_dq)
+    known_bits_dp = known_bits_dp[::-1]  # Reverse the list
+    known_bits_dq = known_bits_dq[::-1]  # Reverse the list
+    
     dp_init = root_bits(known_bits_dp[0], bit_length)
     dq_init = root_bits(known_bits_dq[0], bit_length)
-    print(dp_init[0], dq_init[0])
+    p_init = [0] * bit_length
+    q_init = [0] * bit_length
 
-    stack = [TreeNode(dp_init, dq_init, 0)]
-
+    root_node = TreeNode(p_init, q_init, dp_init, dq_init, 0)
+    stack = [root_node]  # Initialize the stack with the root
+    
     while stack:
         node = stack.pop()
-        dp, dq, i = node.dp_bits, node.dq_bits, node.bit_pos
+        p_bits, q_bits, dp_bits, dq_bits, i = node.p_bits, node.q_bits, node.dp_bits, node.dq_bits, node.bit_pos
+             
+        if i == bit_length:
+            if is_valid(p_bits, q_bits, i, N) and (bits_to_int(p_bits) * bits_to_int(q_bits) == N):
+                return p_bits, q_bits, dp_bits, dq_bits, root_node, kp, kq
+
+        elif i < bit_length:
+            dp_bits = set_bit(dp_bits, i, known_bits_dp[i])
+            dq_bits = set_bit(dq_bits, i, known_bits_dq[i])
+
+            valid_children = []
+
+            def add_child_and_prune(dp_bits, dq_bits):
+                p_bits, q_bits = find_p_q_from_dp_dq(dp_bits, dq_bits, kp, kq, e, i)
+                if p_bits is not None and q_bits is not None and is_valid(p_bits, q_bits, i, N):
+                    child_node = TreeNode(p_bits, q_bits, dp_bits, dq_bits, i + 1)
+                    valid_children.append(child_node)
+                    stack.append(child_node)
+
+            if dp_bits[i] == -1 and dq_bits[i] == -1:
+                for bit_dp in [0, 1]:
+                    for bit_dq in [0, 1]:
+                        dp_bits_new = set_bit(dp_bits, i, bit_dp)
+                        dq_bits_new = set_bit(dq_bits, i, bit_dq)
+                        add_child_and_prune(dp_bits_new, dq_bits_new)
+              
+            elif dp_bits[i] == -1:
+                for bit_dp in [0, 1]:
+                    dp_bits_new = set_bit(dp_bits, i, bit_dp)
+                    dq_bits_new = dq_bits
+                    add_child_and_prune(dp_bits_new, dq_bits_new)
+               
+            elif dq_bits[i] == -1:
+                for bit_dq in [0, 1]:
+                    dq_bits_new = set_bit(dq_bits, i, bit_dq)
+                    dp_bits_new = dp_bits
+                    add_child_and_prune(dp_bits_new, dq_bits_new)
+              
+            else:
+                add_child_and_prune(dp_bits, dq_bits)
+            
+            node.children = valid_children
 
     return None
 
-def verify_dp_dq(dp, dq, p, q, e):
-    
-    if (e * dp) % (p - 1) != 1:
-        print("edp ≡ 1 mod (p-1) failed")
-        print((e * dp) % (p - 1),)
-        print (dp, "dp")
-        return False
-    if (e * dq) % (q - 1) != 1:
-        print("edq ≡ 1 mod (q-1) failed")
-        return False
-    if p * q != N:
-        print("p * q != N failed")
-        return False
-    return True
-
 def branch_and_prune(N, e, known_bits_dp, known_bits_dq):
+    """
+    Branch and prune algorithm to factorize N, knowing non-consecutive bits of the secret values p and q.
+
+    :param N: The product of p and q
+    :param e: The public exponent
+    :param known_bits_dp: Known bits of dp
+    :param known_bits_dq: Known bits of dq
+    :return: Tuple of bit sequences for p and q if found, None otherwise
+    """
     for kp in range(1, e):  # Assuming kp ranges from 1 to e-1
         result = build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq)
         if result is not None:
-            if verify_dp_dq(bits_to_int(result[0]), bits_to_int(result[1]), 29, 31, e):
-                return result
+           return result
     return None
 
+def print_tree(node, level=0):
+    """
+    Recursively prints the tree structure given a root node.
+    
+    :param node: The root node of the tree.
+    :param level: The current level in the tree (used for indentation).
+    """
+    if node is not None:
+        indent = "  " * level
+        print(f"{indent}{repr(node)}")
+        for child in node.children:
+            print_tree(child, level + 1)
 
+print("CRT2 Pruning Example with N = 899")
 
 # Example usage
 N = 899
@@ -120,27 +132,27 @@ e = 17
 known_bits_dp = [-1, 0, -1, -1, 1]
 known_bits_dq = [-1, -1, -1, 0, -1]
 
-
-
 result = branch_and_prune(N, e, known_bits_dp, known_bits_dq)
+
+
+
 
 if result is None:
     print("No solution found")
 else:
-    dp, dq = result
-    dp_int = bits_to_int(dp[::-1])
-    dq_int = bits_to_int(dq[::-1])
-   
+    p, q, dp, dq, root_node, kp, kq = result
+    p = bits_to_int(p)
+    q = bits_to_int(q)
+    dp = bits_to_int(dp)
+    dq = bits_to_int(dq)
 
-    p_int = 29
-    q_int = 31
+    print_tree(root_node)
 
-    if verify_dp_dq(dp_int, dq_int, p_int, q_int, e):
-        print("The solution is coherent.")
-    else:
-        print("The solution is not coherent.")
+    print("Solution found:")
 
-    print(f"Recovered dp: {dp[::-1]}")
-    print(f"Recovered dq: {dq[::-1]}")
-    print(f"dp as int: {bits_to_int(dp)}")
-    print(f"dq as int: {bits_to_int(dq)}")
+    print(f"Recovered p: {p}")
+    print(f"Recovered q: {q}")
+    print(f"Recovered dp: {dp}")
+    print(f"Recovered dq: {dq}")
+    print(f"Recovered kp: {kp}")
+    print(f"Recovered kq: {kq}")
