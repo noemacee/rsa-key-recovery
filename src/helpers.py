@@ -41,25 +41,25 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     dq = bits_to_int(dq)
 
     # Calculate the right-hand sides of the congruences
-    rhs_p = (e * dp - 1 + kp) % (1 << i + 1)
-    rhs_q = (e * dq - 1 + kq) % (1 << i+ 1)
+    rhs_p = ((e * dp) - 1 + kp) % (1 << (i + 1))
+    rhs_q = ((e * dq) - 1 + kq) % (1 << (i+ 1))
 
-    if gcd(kp, 1 << i + 1) != 1 or gcd(kq, 1 << i + 1) != 1:
+    if gcd(kp, 1 << (i + 1)) != 1 or gcd(kq, 1 << (i + 1)) != 1:
         print(f"kp: {kp}")
         print(f"kq: {kq}")
-        print(f"gdc with {1 << i + 1} is not 1")
+        print(f"gdc with {1 << (i + 1)} is not 1")
         return (None, None)
     
     # Find the inverses of kp and kq modulo 2^i
-    kp_inverse = mod_inverse(kp, 1 << i + 1)
-    kq_inverse = mod_inverse(kq, 1 << i + 1)
+    kp_inverse = mod_inverse(kp, 1 << (i + 1))
+    kq_inverse = mod_inverse(kq, 1 << (i + 1))
 
     # Calculate the bits of p and q
-    p_bits = (kp_inverse * rhs_p) % (1 << i + 1)
-    q_bits = (kq_inverse * rhs_q) % (1 << i + 1)
+    p_bits = (kp_inverse * rhs_p) % (1 << (i + 1))
+    q_bits = (kq_inverse * rhs_q) % (1 << (i + 1))
 
-    p_bits = int_to_bits(p_bits, i + 1)
-    q_bits = int_to_bits(q_bits, i + 1)
+    p_bits = int_to_bits(p_bits)
+    q_bits = int_to_bits(q_bits)
 
     
     return p_bits, q_bits
