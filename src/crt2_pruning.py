@@ -33,7 +33,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
     if kq is None:
         print("kq was not found")
         return None
-
+    print(check_kq(kp,kq,N,e))
     
     bit_length = max(len(known_bits_dp), len(known_bits_dq))
 
@@ -67,14 +67,14 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
             def add_child_and_prune(dp_bits, dq_bits):
     
                 p_bits,q_bits = find_p_q_from_dp_dq(dp_bits, dq_bits, kp, kq, e, i)
-                print("we are trying to add the child with:")
-                print(f"p: {p}")
-                print(f"q: {q}")
-                print(f"dp: {dp}")
-                print(f"dq: {dq}")
+                ##print("we are trying to add the child with:")
 
-                
+                ##print(f"p_bits: {p_bits}")
+                ##print(f"q_bits: {q_bits}")
+
                 if p_bits is not None and q_bits is not None and is_valid(p_bits, q_bits, i, N):
+                    print("child adding")
+                    
                     child_node = TreeNode(p_bits, q_bits, dp_bits, dq_bits, i + 1)
                     valid_children.append(child_node)
                     stack.append(child_node)
@@ -160,7 +160,5 @@ else:
     print(f"Recovered dp: {dp}")
     print(f"Recovered dq: {dq}")
 
-    if verify_dp_dq(dp, dq, p, q, e):
-        print("The solution is coherent.")
 
 

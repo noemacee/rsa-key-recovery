@@ -5,8 +5,8 @@ from math import ceil, log, gcd
 ## helpers for crt
 
 def find_kq_from_kp(kp, N, e):
-    lhs = kp - 1 - kp * N
-    rhs = kp - 1
+    lhs =(kp - 1 - (kp * N) )% e
+    rhs = (kp - 1) % e
 
     if (gcd(lhs, e) != 1): # Check if lhs is invertible     
         return None
@@ -27,13 +27,13 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     """
     Calculate the bits of p and q for the given bit position i.
 
-    :param dp: The value of dp (d mod (p-1))
-    :param dq: The value of dq (d mod (q-1))
+    :param dp: The value of dp as a list of bits
+    :param dq: The value of dq as a list of bits
     :param kp: The coefficient kp
     :param kq: The coefficient kq
     :param e: The public exponent
     :param i: The bit position to consider
-    :return: The bits of p and q for the given bit position or None if no solution exists
+    :return: The bits of p and q for the given bit posnghjkhgjgition and derived from dp and dq or None if no solution exists
     """
 
     # convert dp, dq, to integers
@@ -45,6 +45,9 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     rhs_q = (e * dq - 1 + kq) % (1 << i+ 1)
 
     if gcd(kp, 1 << i + 1) != 1 or gcd(kq, 1 << i + 1) != 1:
+        print(f"kp: {kp}")
+        print(f"kq: {kq}")
+        print(f"gdc with {1 << i + 1} is not 1")
         return (None, None)
     
     # Find the inverses of kp and kq modulo 2^i
