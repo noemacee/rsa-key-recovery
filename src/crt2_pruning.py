@@ -62,7 +62,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
              
         if i == bit_length:
             print("we reached i == bitlength")
-            if is_valid(p, q, i, N):
+            if is_valid(p, q, i, N) and (bits_to_int(p) * bits_to_int(q) == N):
                 return p, q, dp, dq, root_node, kp, kq
 
         elif i < bit_length:
@@ -74,13 +74,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
             def add_child_and_prune(dp_bits, dq_bits):
     
                 p_bits,q_bits = find_p_q_from_dp_dq(dp_bits, dq_bits, kp, kq, e, i)
-                print("we are trying to add the child with:")
-
-                
-                print(f"dp: {dp_bits[::-1]}")
-                print(f"dq: {dq_bits[::-1]}")
-                print(f"p_bits: {p_bits[::-1]}")
-                print(f"q_bits: {q_bits[::-1]}")
+        
 
                 if p_bits is not None and q_bits is not None and is_valid(p_bits, q_bits, i, N):
                     print("child adding")
@@ -136,14 +130,11 @@ def branch_and_prune(N, e, known_bits_dp, known_bits_dq):
     :param bit_length: Length of the bit sequences of p and q
     :return: Tuple of bit sequences for p and q if found, None otherwise
     """
-    result = build_tree_and_prune_dfs(N, e, 13, known_bits_dp, known_bits_dq)
-    return build_tree_and_prune_dfs(N, e, 13, known_bits_dp, known_bits_dq)
-    # results = [] 
-    # for kp in range(1, e):  # Assuming kp ranges from 1 to e-1
-    #     result = build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq)
-    #     if result is not None:
-    #         results.append(result)
-    # return results
+    for kp in range(1, e):  # Assuming kp ranges from 1 to e-1
+        result = build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq)
+        if result is not None:
+           return result
+    return None
     
 
 def print_tree(node, level=0):
@@ -193,7 +184,7 @@ else:
     print(f"Recovered dq: {dq}")
     print(f"Recovered kp: {kp}")
     print(f"Recovered kq: {kq}")
-    print(check_kq(kp,kq,N,e))
+   
 
 
 

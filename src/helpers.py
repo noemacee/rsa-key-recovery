@@ -213,8 +213,3 @@ def example_generator(reveal_rate, bit_size):
     q_erased = erase_bits(q_bits, reveal_rate)
 
     return N,p,q, p_bits, q_bits, p_erased, q_erased
-
-dp = [1, 1, 0, 0, 0]
-dq = [1, 0, 0, 1, 1]
-print(find_p_q_from_dp_dq(dp,dq,13,3,17,3))
-print(int_to_bits(13,5))
