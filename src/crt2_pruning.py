@@ -74,7 +74,12 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
 
                 if p_bits is not None and q_bits is not None and is_valid(p_bits, q_bits, i, N):
                     print("child adding")
-                    
+                    print(f"p_bits: {p_bits}")
+                    print(f"q_bits: {q_bits}")
+                    print(f"dp: {dp_bits}")
+                    print(f"dq: {dq_bits}")
+
+
                     child_node = TreeNode(p_bits, q_bits, dp_bits, dq_bits, i + 1)
                     valid_children.append(child_node)
                     stack.append(child_node)

@@ -58,8 +58,8 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     p_bits = (kp_inverse * rhs_p) % (1 << i + 1)
     q_bits = (kq_inverse * rhs_q) % (1 << i + 1)
 
-    p_bits = int_to_bits(p_bits)
-    q_bits = int_to_bits(q_bits)
+    p_bits = int_to_bits(p_bits, i + 1)
+    q_bits = int_to_bits(q_bits, i + 1)
 
     
     return p_bits, q_bits
@@ -153,14 +153,25 @@ def bits_to_int(bits):
         value = (value << 1) | bit
     return value
 
-def int_to_bits(value):
+def int_to_bits(value, length=-1):
     """
-    Convert an integer into a list of bit values
+    Convert an integer into a list of bit values.
 
-    :param value: Integer value
-    :return: List of bits
+    :param value: Integer value to be converted.
+    :param length: Desired length of the resulting bit list. If -1, the length will be determined by the number of bits in the value.
+    :return: List of bits representing the integer.
     """
-    return [int(bit) for bit in bin(value)[2:]]
+    # Convert the integer to a binary string and then to a list of integers (bits)
+    bits = [int(bit) for bit in bin(value)[2:]]
+    
+    # If length is provided and is greater than the number of bits, pad with leading zeros
+    if length != -1:
+        to_add = length - len(bits)
+        bits = bits + [0] * to_add
+    
+    return bits
+    
+    
     
 ## helpers for statistics
 
