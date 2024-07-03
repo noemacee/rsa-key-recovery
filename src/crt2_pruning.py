@@ -31,6 +31,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
     
     kq = find_kq_from_kp(kp, N, e)
     if kq is None:
+        print("kq was not found")
         return None
 
     
@@ -53,19 +54,25 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
         p, q, dp, dq, i = node.p_bits, node.q_bits, node.dp_bits, node.dq_bits, node.bit_pos
              
         if i == bit_length:
+            print("we reached i == bitlength")
             if is_valid(p, q, i, N):
                 return p, q, dp, dq
 
         elif i < bit_length:
-            dp = set_bit(p, i, known_bits_dp[i])
-            dq = set_bit(q, i, known_bits_dq[i])
+            dp = set_bit(dp, i, known_bits_dp[i])
+            dq = set_bit(dq, i, known_bits_dq[i])
 
             valid_children = []
 
             def add_child_and_prune(dp_bits, dq_bits):
-                
-                
+    
                 p_bits,q_bits = find_p_q_from_dp_dq(dp_bits, dq_bits, kp, kq, e, i)
+                print("we are trying to add the child with:")
+                print(f"p: {p}")
+                print(f"q: {q}")
+                print(f"dp: {dp}")
+                print(f"dq: {dq}")
+
                 
                 if p_bits is not None and q_bits is not None and is_valid(p_bits, q_bits, i, N):
                     child_node = TreeNode(p_bits, q_bits, dp_bits, dq_bits, i + 1)
@@ -73,6 +80,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
                     stack.append(child_node)
 
             if dp[i] == -1 and dq[i] == -1:
+                print("both dp and dq are unknown")
                 for bit_dp in [0, 1]:
                     for bit_dq in [0, 1]:
                         dp_bits_new = set_bit(dp, i, bit_dp)
@@ -80,18 +88,21 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
                         add_child_and_prune(dp_bits_new, dq_bits_new)
               
             elif dp[i] == -1:
+                print("dp is unknown")
                 for bit_dp in [0, 1]:
                     dp_bits_new = set_bit(dp, i, bit_dp)
                     dq_bits_new = dq
                     add_child_and_prune(dp_bits_new, dq_bits_new)
                
             elif dq[i] == -1:
+                print("dq is unknown")
                 for bit_dq in [0, 1]:
-                    dq_bits_new = set_bit(q, i, bit_dq)
+                    dq_bits_new = set_bit(dq, i, bit_dq)
                     dp_bits_new = p
                     add_child_and_prune(dp_bits_new, dq_bits_new)
               
             else:
+                print("both are known")
                 add_child_and_prune(dp, dq)
             
 
@@ -120,7 +131,7 @@ def branch_and_prune(N, e, known_bits_p, known_bits_q):
     
 
 
-print("CRT2 Pruning")
+print("CRT2 Pruning Example with N = 899")
 
 # Example usage
 N = 899
