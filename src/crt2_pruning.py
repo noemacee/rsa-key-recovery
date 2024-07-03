@@ -37,7 +37,9 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
     if kq is None:
         print("kq was not found")
         return None
-    print(check_kq(kp,kq,N,e))
+    print(f"we found a valid kp kq pair: {check_kq(kp,kq,N,e)}")
+    print(f" kp: {kp}")
+    print(f" kq: {kq}")
     
     bit_length = max(len(known_bits_dp), len(known_bits_dq))
 
@@ -61,7 +63,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
         if i == bit_length:
             print("we reached i == bitlength")
             if is_valid(p, q, i, N):
-                return p, q, dp, dq, root_node
+                return p, q, dp, dq, root_node, kp, kq
 
         elif i < bit_length:
             dp = set_bit(dp, i, known_bits_dp[i])
@@ -72,10 +74,13 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
             def add_child_and_prune(dp_bits, dq_bits):
     
                 p_bits,q_bits = find_p_q_from_dp_dq(dp_bits, dq_bits, kp, kq, e, i)
-                ##print("we are trying to add the child with:")
+                print("we are trying to add the child with:")
 
-                ##print(f"p_bits: {p_bits}")
-                ##print(f"q_bits: {q_bits}")
+                
+                print(f"dp: {dp_bits[::-1]}")
+                print(f"dq: {dq_bits[::-1]}")
+                print(f"p_bits: {p_bits[::-1]}")
+                print(f"q_bits: {q_bits[::-1]}")
 
                 if p_bits is not None and q_bits is not None and is_valid(p_bits, q_bits, i, N):
                     print("child adding")
@@ -121,7 +126,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
 
     return None
 
-def branch_and_prune(N, e, known_bits_p, known_bits_q):
+def branch_and_prune(N, e, known_bits_dp, known_bits_dq):
     """
     Branch and prune algorithm to factorize N, knowing non-consecutive bits of the secret values p and q
 
@@ -131,13 +136,14 @@ def branch_and_prune(N, e, known_bits_p, known_bits_q):
     :param bit_length: Length of the bit sequences of p and q
     :return: Tuple of bit sequences for p and q if found, None otherwise
     """
-    
-    for kp in range(1, e):  # Assuming kp ranges from 1 to e-1
-        result = build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq)
-        if result is not None:
-        ##    if verify_dp_dq(bits_to_int(result[0]), bits_to_int(result[1]), 29, 31, e):
-            return result
-    return None
+    result = build_tree_and_prune_dfs(N, e, 13, known_bits_dp, known_bits_dq)
+    return build_tree_and_prune_dfs(N, e, 13, known_bits_dp, known_bits_dq)
+    # results = [] 
+    # for kp in range(1, e):  # Assuming kp ranges from 1 to e-1
+    #     result = build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq)
+    #     if result is not None:
+    #         results.append(result)
+    # return results
     
 
 def print_tree(node, level=0):
@@ -170,11 +176,10 @@ known_bits_dq = [-1, -1, -1, 0, -1]
 result = branch_and_prune(N, e, known_bits_dp, known_bits_dq)
 
 
-
 if result is None:
     print("No solution found")
 else:
-    p, q, dp, dq, root_node = result
+    p, q, dp, dq, root_node, kp,kq = result
     p = bits_to_int(p)
     q = bits_to_int(q)
     dp = bits_to_int(dp)
@@ -186,6 +191,12 @@ else:
     print(f"Recovered q: {q}")
     print(f"Recovered dp: {dp}")
     print(f"Recovered dq: {dq}")
+    print(f"Recovered kp: {kp}")
+    print(f"Recovered kq: {kq}")
+    print(check_kq(kp,kq,N,e))
+
+
+
 
 
 

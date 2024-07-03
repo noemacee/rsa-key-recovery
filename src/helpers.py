@@ -27,7 +27,7 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     """
     Calculate the bits of p and q for the given bit position i.
 
-    :param dp: The value of dp as a list of bits
+    :param dp: The value of dp as a list of  bits
     :param dq: The value of dq as a list of bits
     :param kp: The coefficient kp
     :param kq: The coefficient kq
@@ -41,8 +41,8 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     dq = bits_to_int(dq)
 
     # Calculate the right-hand sides of the congruences
-    rhs_p = ((e * dp) - 1 + kp) % (1 << (i + 1))
-    rhs_q = ((e * dq) - 1 + kq) % (1 << (i+ 1))
+    rhs_p = ((e * dp) - 1 + kp) 
+    rhs_q = ((e * dq) - 1 + kq) 
 
     if gcd(kp, 1 << (i + 1)) != 1 or gcd(kq, 1 << (i + 1)) != 1:
         print(f"kp: {kp}")
@@ -162,7 +162,7 @@ def int_to_bits(value, length=-1):
     :return: List of bits representing the integer.
     """
     # Convert the integer to a binary string and then to a list of integers (bits)
-    bits = [int(bit) for bit in bin(value)[2:]]
+    bits = [int(bit) for bit in bin(value)[:1:-1]]
     
     # If length is provided and is greater than the number of bits, pad with leading zeros
     if length != -1:
@@ -214,4 +214,7 @@ def example_generator(reveal_rate, bit_size):
 
     return N,p,q, p_bits, q_bits, p_erased, q_erased
 
-
+dp = [1, 1, 0, 0, 0]
+dq = [1, 0, 0, 1, 1]
+print(find_p_q_from_dp_dq(dp,dq,13,3,17,3))
+print(int_to_bits(13,5))
