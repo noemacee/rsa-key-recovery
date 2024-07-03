@@ -35,7 +35,7 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     :param i: The bit position to consider
     :return: The bits of p and q for the given bit posnghjkhgjgition and derived from dp and dq or None if no solution exists
     """
-
+    bit_length = len(dp)
     # convert dp, dq, to integers
     dp = bits_to_int(dp)
     dq = bits_to_int(dq)
@@ -58,8 +58,8 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     p_bits = (kp_inverse * rhs_p) % (1 << (i + 1))
     q_bits = (kq_inverse * rhs_q) % (1 << (i + 1))
 
-    p_bits = int_to_bits(p_bits)
-    q_bits = int_to_bits(q_bits)
+    p_bits = int_to_bits(p_bits,bit_length)
+    q_bits = int_to_bits(q_bits,bit_length)
 
     
     return p_bits, q_bits
@@ -213,3 +213,5 @@ def example_generator(reveal_rate, bit_size):
     q_erased = erase_bits(q_bits, reveal_rate)
 
     return N,p,q, p_bits, q_bits, p_erased, q_erased
+
+

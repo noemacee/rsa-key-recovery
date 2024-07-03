@@ -5,6 +5,7 @@ from helpers import *
 
 
 
+
 class TreeNode:
     def __init__(self, p_bits, q_bits, dp_bits, dq_bits, bit_pos):
         self.p_bits = p_bits
@@ -16,6 +17,9 @@ class TreeNode:
 
     def add_child(self, child_node):
         self.children.append(child_node)
+    def __repr__(self):
+        return (f"TreeNode(p_bits={self.p_bits}, q_bits={self.q_bits}, "
+                f"dp_bits={self.dp_bits}, dq_bits={self.dq_bits}, bit_pos={self.bit_pos})")    
 
 
 def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
@@ -47,7 +51,8 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
     p_init = [0] * bit_length
     q_init = [0] * bit_length
 
-    stack = [TreeNode(p_init,q_init,dp_init, dq_init, 0)] ## Initialize the stack with the root
+    root_node = TreeNode(p_init,q_init,dp_init, dq_init, 0)
+    stack = [root_node] ## Initialize the stack with the root
     
     while stack:
         node = stack.pop()
@@ -56,7 +61,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
         if i == bit_length:
             print("we reached i == bitlength")
             if is_valid(p, q, i, N):
-                return p, q, dp, dq
+                return p, q, dp, dq, root_node
 
         elif i < bit_length:
             dp = set_bit(dp, i, known_bits_dp[i])
@@ -126,7 +131,7 @@ def branch_and_prune(N, e, known_bits_p, known_bits_q):
     :param bit_length: Length of the bit sequences of p and q
     :return: Tuple of bit sequences for p and q if found, None otherwise
     """
-
+    
     for kp in range(1, e):  # Assuming kp ranges from 1 to e-1
         result = build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq)
         if result is not None:
@@ -135,6 +140,21 @@ def branch_and_prune(N, e, known_bits_p, known_bits_q):
     return None
     
 
+def print_tree(node, level=0):
+    """
+    Recursively prints the tree structure given a root node.
+    
+    :param node: The root node of the tree.
+    :param level: The current level in the tree (used for indentation).
+    """
+    if node is not None:
+        # Print the current node with indentation based on the level
+        indent = "  " * level
+        print(f"{indent}{repr(node)}")
+        
+        # Recursively print all children
+        for child in node.children:
+            print_tree(child, level + 1)
 
 print("CRT2 Pruning Example with N = 899")
 
@@ -154,11 +174,13 @@ result = branch_and_prune(N, e, known_bits_dp, known_bits_dq)
 if result is None:
     print("No solution found")
 else:
-    p, q, dp, dq = result
+    p, q, dp, dq, root_node = result
     p = bits_to_int(p)
     q = bits_to_int(q)
     dp = bits_to_int(dp)
     dq = bits_to_int(dq)
+
+    print_tree(root_node)
 
     print(f"Recovered p: {p}")
     print(f"Recovered q: {q}")
