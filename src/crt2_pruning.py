@@ -98,7 +98,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
                 print("dq is unknown")
                 for bit_dq in [0, 1]:
                     dq_bits_new = set_bit(dq, i, bit_dq)
-                    dp_bits_new = p
+                    dp_bits_new = dp
                     add_child_and_prune(dp_bits_new, dq_bits_new)
               
             else:
