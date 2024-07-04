@@ -213,4 +213,37 @@ def example_generator(reveal_rate, bit_size):
     p_erased = erase_bits(p_bits, reveal_rate)
     q_erased = erase_bits(q_bits, reveal_rate)
 
-    return N,p,q, p_bits, q_bits, p_erased, q_erased
+    return N, p, q, p_bits, q_bits, p_erased, q_erased
+
+def example_generator_crt_pruning(reveal_rate, bit_size, e):
+    """
+    Generate example dp and dq values and theyr coresponding p and q values, calculate N, and erase bits according to the reveal rate.
+
+    :param reveal_rate: The rate at which bits are revealed (0 to 1).
+    :param bit_size: The desired bitsize for p and q.
+    :param e: The public exponent
+    :return: Tuple of (N, dp_actual, dq_actual, dp_erased, dq_erased, p, q)
+    """
+    N, p, q, p_bits, q_bits, p_erased, q_erased = example_generator(reveal_rate,bit_size)
+
+    # Find dp and dq using the modulo inverse of e
+    dp = mod_inverse(e, (p - 1))
+    dq = mod_inverse(e, (q - 1))
+
+    # Convert dp and dq to binary lists
+    # might need to add bitsize
+    dp_bits = int_to_bits(dp)
+    dq_bits = int_to_bits(dq)
+
+    # Pad dp_bits and dq_bits to the same length
+    dp_bits, dq_bits = padding_input(dp_bits, dq_bits)
+
+    # Erase bits according to the reveal rate
+    dp_erased = erase_bits(dp_bits, reveal_rate)
+    dq_erased = erase_bits(dq_bits, reveal_rate)
+
+
+
+
+    return N, dp_bits, dq_bits, dp, dq, dp_erased, dq_erased, p, q
+

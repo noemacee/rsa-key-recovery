@@ -124,18 +124,16 @@ def print_tree(node, level=0):
         for child in node.children:
             print_tree(child, level + 1)
 
+
+# Example usage 1
 print("CRT2 Pruning Example with N = 899")
 
-# Example usage
 N = 899
 e = 17
 known_bits_dp = [-1, 0, -1, -1, 1]
 known_bits_dq = [-1, -1, -1, 0, -1]
 
 result = branch_and_prune(N, e, known_bits_dp, known_bits_dq)
-
-
-
 
 if result is None:
     print("No solution found")
@@ -156,3 +154,50 @@ else:
     print(f"Recovered dq: {dq}")
     print(f"Recovered kp: {kp}")
     print(f"Recovered kq: {kq}")
+
+# Example usage with example_generator
+print("CRT2 Pruning Example with example_generator_crt")
+
+e = 17
+revealrate = 0.9
+bitsize = 5  # Use a small bitsize for demonstration purposes
+
+N, dp_bits, dq_bits, dp, dq, dp_erased, dq_erased, p, q = example_generator_crt_pruning(revealrate, bitsize, e)
+
+print(f"N: {N}")
+print(f"dp_bits: {dp_bits}")
+print(f"dp as int: {dp}")
+print(f"p as int: {p}")
+
+print(f"dq_bits: {dq_bits}")
+print(f"dq as int: {dq}")
+print(f"q as int: {q}")
+
+print(f"dp_erased: {dp_erased}")
+print(f"dq_erased: {dq_erased}")
+
+# Find the factors p and q
+result = branch_and_prune(N, e, dp_erased, dq_erased)
+
+if result is None : 
+    print("No solution found")
+else:
+    p, q, dp, dq, root_node, kp, kq = result
+    p = bits_to_int(p)
+    q = bits_to_int(q)
+    dp = bits_to_int(dp)
+    dq = bits_to_int(dq)
+
+    print_tree(root_node)
+
+    print("Solution found:")
+
+    print(f"Recovered p: {p}")
+    print(f"Recovered q: {q}")
+    print(f"Recovered dp: {dp}")
+    print(f"Recovered dq: {dq}")
+    print(f"Recovered kp: {kp}")
+    print(f"Recovered kq: {kq}")
+
+
+
