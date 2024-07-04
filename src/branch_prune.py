@@ -28,8 +28,6 @@ def build_tree_and_prune_dfs(N, known_bits_p, known_bits_q):
     """
     bit_length = max(len(known_bits_p), len(known_bits_q))
 
-    known_bits_p, known_bits_q = padding_input(known_bits_p,known_bits_q)
-
     known_bits_p = known_bits_p[::-1] ## Reverse the list
     known_bits_q = known_bits_q[::-1] ## Reverse the list
     

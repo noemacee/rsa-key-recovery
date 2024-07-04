@@ -85,7 +85,7 @@ def root_bits(lsb, bit_length):
     bits[0] = lsb
     return bits
 
-def padding_input(known_bits_p, known_bits_q):
+def padding_input(bits, size):
     """
     Pads the shorter array with leading zeros to match the length of the longer array.
 
@@ -93,13 +93,10 @@ def padding_input(known_bits_p, known_bits_q):
     :param known_bits_q: q bit array
     :return: padded input
     """
-    bit_length = max(len(known_bits_p), len(known_bits_q))
-    
-    if len(known_bits_p) < bit_length:
-        known_bits_p = [0] * (bit_length - len(known_bits_p)) + known_bits_p
-    if len(known_bits_q) < bit_length:
-        known_bits_q = [0] * (bit_length - len(known_bits_q)) + known_bits_q
-    return known_bits_p,known_bits_q
+    size_bits = len(bits)
+    if size_bits < size:
+        bits = [0] * (size - size_bits) + bits
+    return bits
 
 
 
@@ -235,8 +232,11 @@ def example_generator(reveal_rate, bit_size):
     p_bits = int_to_bits_lsb_end(p)
     q_bits = int_to_bits_lsb_end(q)
 
+    max_bits = max(len(p_bits), len(q_bits))
+
     # Pad p_bits and q_bits to the same length
-    p_bits, q_bits = padding_input(p_bits, q_bits)
+    p_bits = padding_input(p_bits, max_bits)
+    q_bits = padding_input(q_bits, max_bits)
 
     # Erase bits according to the reveal rate
     p_erased = erase_bits(p_bits, reveal_rate)
@@ -276,10 +276,9 @@ def example_generator_crt_pruning(reveal_rate, bit_size, e):
 
     # Pad dp_bits and dq_bits to the same length
 
-    N_bits = int_to_bits_lsb_end(N)
-    dp_bits, _, = padding_input(dp_bits, N_bits)
-    dq_bits,_ = padding_input(dq_bits,N_bits)
-    print(dp , dq, dp_bits, dq_bits, "Values of dp dq dp_bits and dq_bits from the example generator")
+    N_bits_size = ceil(log(N,2))
+    dp_bits = padding_input(dp_bits, N_bits_size)
+    dq_bits = padding_input(dq_bits,N_bits_size)
 
     # Erase bits according to the reveal rate
     dp_erased = erase_bits(dp_bits, reveal_rate)
@@ -310,8 +309,3 @@ def test_find_kq_from_kp(kp, kq, N, e):
     right_hand_side = kp * kq * N % e
     return left_hand_side == right_hand_side
 
-
-
-print(mod_inverse(5,(16*22)))
-print(141%22)
-print(find_kq_from_kp(4,391,5))
