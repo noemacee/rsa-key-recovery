@@ -76,8 +76,8 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     p_bits = (kp_inverse * rhs_p) % (1 << (i + 1))
     q_bits = (kq_inverse * rhs_q) % (1 << (i + 1))
 
-    p_bits = int_to_bits(p_bits,bit_length)
-    q_bits = int_to_bits(q_bits,bit_length)
+    p_bits = int_to_bits_lsb_start(p_bits,bit_length)
+    q_bits = int_to_bits_lsb_start(q_bits,bit_length)
 
     
     return p_bits, q_bits
@@ -154,9 +154,9 @@ def bits_to_int(bits):
         value = (value << 1) | bit
     return value
 
-def int_to_bits(value, length=-1):
+def int_to_bits_lsb_start(value, length=-1):
     """
-    Convert an integer into a list of bit values.
+    Convert an integer into a list of bit values with the least significant bit (LSB) at the start of the list.
 
     :param value: Integer value to be converted.
     :param length: Desired length of the resulting bit list. If -1, the length will be determined by the number of bits in the value.
@@ -171,6 +171,25 @@ def int_to_bits(value, length=-1):
         bits = bits + [0] * to_add
     
     return bits
+
+def int_to_bits_lsb_end(value, length=-1):
+    """
+    Convert an integer into a list of bit values with the least significant bit (LSB) at the end of the list.
+
+    :param value: Integer value to be converted.
+    :param length: Desired length of the resulting bit list. If -1, the length will be determined by the number of bits in the value.
+    :return: List of bits representing the integer with LSB at the end.
+    """
+    # Convert the integer to a binary string, reverse the string to get LSB at the end, and then convert to a list of integers (bits)
+    bits = [int(bit) for bit in bin(value)[2:]]
+    
+    # If length is provided and is greater than the number of bits, pad with leading zeros at the start
+    if length != -1:
+        to_add = length - len(bits)
+        bits = [0] * to_add + bits
+    
+    return bits
+
     
     
     
@@ -203,8 +222,8 @@ def example_generator(reveal_rate, bit_size):
     N = p * q
 
     # Convert p and q to binary lists
-    p_bits = int_to_bits(p)
-    q_bits = int_to_bits(q)
+    p_bits = int_to_bits_lsb_end(p)
+    q_bits = int_to_bits_lsb_end(q)
 
     # Pad p_bits and q_bits to the same length
     p_bits, q_bits = padding_input(p_bits, q_bits)
@@ -232,8 +251,8 @@ def example_generator_crt_pruning(reveal_rate, bit_size, e):
 
     # Convert dp and dq to binary lists
     # might need to add bitsize
-    dp_bits = int_to_bits(dp)
-    dq_bits = int_to_bits(dq)
+    dp_bits = int_to_bits_lsb_end(dp)
+    dq_bits = int_to_bits_lsb_end(dq)
 
     # Pad dp_bits and dq_bits to the same length
     dp_bits, dq_bits = padding_input(dp_bits, dq_bits)
