@@ -2,23 +2,44 @@ from rsa import *
 from math import ceil, log, gcd
 
 
-## helpers for crt
+# Helper functions for crt_pruning
 
 def find_kq_from_kp(kp, N, e):
+    """
+    Find kq from kp, N, and e using modular arithmetic.
+
+    :param kp: Integer value of kp
+    :param N: Public value  N
+    :param e: Public exponent e
+    :return: Integer value of kq if found, otherwise None
+    """
+    # Calculate the left-hand side (lhs) and right-hand side (rhs) for the equation
     lhs =(kp - 1 - (kp * N) )% e
     rhs = (kp - 1) % e
 
-    if (gcd(lhs, e) != 1): # Check if lhs is invertible     
+    # Check if lhs is invertible under modulo e
+    if (gcd(lhs, e) != 1): 
         return None
     
+    # Calculate the modular inverse of lhs
     lhs_inv = mod_inverse(lhs, e)
     if lhs_inv is None:
         return None
 
+    # Calculate kq using the modular inverse
     kq = (rhs * lhs_inv) % e
     return kq
 
 def check_kq(kp, kq, N, e):
+    """
+    Check the validity of kq for a given kp, N, and e.
+
+    :param kp: Integer value of kp
+    :param kq: Integer value of kq
+    :param N: Public value N
+    :param e: Public exponent e
+    :return: Boolean indicating whether kq is valid
+    """
     left_hand_side = (kp - 1) * (kq - 1) % e
     right_hand_side = kp * kq * N % e
     return left_hand_side == right_hand_side
@@ -61,19 +82,7 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     
     return p_bits, q_bits
 
-def verify_dp_dq(dp, dq, p, q, e, N):
-    
-    if (e * dp) % (p - 1) != 1:
-        return False
-    if (e * dq) % (q - 1) != 1:
-        return False
-    if p * q != N:
-        return False
-    return True
-
-## general helpers
-
-
+# Helper functions for branch_rune and crt_pruning
 
 def root_bits(lsb, bit_length):
     """
@@ -165,7 +174,7 @@ def int_to_bits(value, length=-1):
     
     
     
-## helpers for statistics
+# Helper functions for statistics
 
 def erase_bits(bits, revealrate):
     """
