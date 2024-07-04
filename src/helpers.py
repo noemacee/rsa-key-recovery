@@ -112,6 +112,24 @@ def padding_input(known_bits_p, known_bits_q):
         known_bits_q = [0] * (bit_length - len(known_bits_q)) + known_bits_q
     return known_bits_p,known_bits_q
 
+def padding_input_lsb_end(known_bits_p, known_bits_q):
+    """
+    Pads the shorter array with trailing zeros to match the length of the longer array.
+
+    :param known_bits_p: p bit array
+    :param known_bits_q: q bit array
+    :return: padded input
+    """
+    bit_length = max(len(known_bits_p), len(known_bits_q))
+    
+    if len(known_bits_p) < bit_length:
+        known_bits_p = known_bits_p + [0] * (bit_length - len(known_bits_p))
+    if len(known_bits_q) < bit_length:
+        known_bits_q = known_bits_q + [0] * (bit_length - len(known_bits_q))
+        
+    return known_bits_p, known_bits_q
+
+
 
 def is_valid(p_bits, q_bits, i, N):
     """
@@ -250,7 +268,6 @@ def example_generator_crt_pruning(reveal_rate, bit_size, e):
     dq = mod_inverse(e, (q - 1))
 
     # Convert dp and dq to binary lists
-    # might need to add bitsize
     dp_bits = int_to_bits_lsb_end(dp)
     dq_bits = int_to_bits_lsb_end(dq)
 

@@ -147,7 +147,7 @@ else:
 print("\n Example 3 using example_generator \n")
 
 revealrate = 0.5
-bitsize = 6  # Use a small bitsize for demonstration purposes
+bitsize = 10  # Use a small bitsize for demonstration purposes
 
 N,p,q, p_actual, q_actual, p_erased, q_erased = example_generator(revealrate, bitsize)
 
