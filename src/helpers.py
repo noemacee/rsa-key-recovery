@@ -1,5 +1,7 @@
-from rsa import *
+from rsa import generate_prime,generate_keypair
+from sympy import mod_inverse
 from math import ceil, log, gcd
+import random
 
 
 # Helper functions for crt_pruning
@@ -30,19 +32,6 @@ def find_kq_from_kp(kp, N, e):
     kq = (rhs * lhs_inv) % e
     return kq
 
-def check_kq(kp, kq, N, e):
-    """
-    Check the validity of kq for a given kp, N, and e.
-
-    :param kp: Integer value of kp
-    :param kq: Integer value of kq
-    :param N: Public value N
-    :param e: Public exponent e
-    :return: Boolean indicating whether kq is valid
-    """
-    left_hand_side = (kp - 1) * (kq - 1) % e
-    right_hand_side = kp * kq * N % e
-    return left_hand_side == right_hand_side
 
 def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     """
@@ -111,6 +100,9 @@ def padding_input(known_bits_p, known_bits_q):
     if len(known_bits_q) < bit_length:
         known_bits_q = [0] * (bit_length - len(known_bits_q)) + known_bits_q
     return known_bits_p,known_bits_q
+
+
+
 
 def padding_input_lsb_end(known_bits_p, known_bits_q):
     """
@@ -261,18 +253,33 @@ def example_generator_crt_pruning(reveal_rate, bit_size, e):
     :param e: The public exponent
     :return: Tuple of (N, dp_actual, dq_actual, dp_erased, dq_erased, p, q)
     """
+    
     N, p, q, p_bits, q_bits, p_erased, q_erased = example_generator(reveal_rate,bit_size)
 
+    phi = (p - 1) * (q - 1)
+    
+    while(e > (phi - 1) or gcd(e, phi) != 1):
+        N, p, q, p_bits, q_bits, p_erased, q_erased = example_generator(reveal_rate,bit_size)
+        phi = (p - 1) * (q - 1)
+
+
+
     # Find dp and dq using the modulo inverse of e
-    dp = mod_inverse(e, (p - 1))
-    dq = mod_inverse(e, (q - 1))
+    d = mod_inverse(e, phi)
+    dp = d % (p - 1)
+    dq = d % (q - 1)
 
     # Convert dp and dq to binary lists
     dp_bits = int_to_bits_lsb_end(dp)
     dq_bits = int_to_bits_lsb_end(dq)
 
+
     # Pad dp_bits and dq_bits to the same length
-    dp_bits, dq_bits = padding_input(dp_bits, dq_bits)
+
+    N_bits = int_to_bits_lsb_end(N)
+    dp_bits, _, = padding_input(dp_bits, N_bits)
+    dq_bits,_ = padding_input(dq_bits,N_bits)
+    print(dp , dq, dp_bits, dq_bits, "Values of dp dq dp_bits and dq_bits from the example generator")
 
     # Erase bits according to the reveal rate
     dp_erased = erase_bits(dp_bits, reveal_rate)
@@ -281,5 +288,30 @@ def example_generator_crt_pruning(reveal_rate, bit_size, e):
 
 
 
+
+
     return N, dp_bits, dq_bits, dp, dq, dp_erased, dq_erased, p, q
 
+
+
+## Unit tests on the different functions in the helpers.py file
+
+def test_find_kq_from_kp(kp, kq, N, e):
+    """
+    Check the validity of kq for a given kp, N, and e.
+
+    :param kp: Integer value of kp
+    :param kq: Integer value of kq
+    :param N: Public value N
+    :param e: Public exponent e
+    :return: Boolean indicating whether kq is valid
+    """
+    left_hand_side = (kp - 1) * (kq - 1) % e
+    right_hand_side = kp * kq * N % e
+    return left_hand_side == right_hand_side
+
+
+
+print(mod_inverse(5,(16*22)))
+print(141%22)
+print(find_kq_from_kp(4,391,5))
