@@ -47,7 +47,7 @@ def run_crt_pruning(revealrate, bitsize, e=17):
     
     return elapsed_time, result
 
-def performance_test(revealrate_values, bitsize=10, e=17):
+def performance_test(bitsize=10, e=17):
     """
     Perform performance tests for both algorithms over different reveal rates and plot the results.
 
@@ -55,6 +55,9 @@ def performance_test(revealrate_values, bitsize=10, e=17):
     :param bitsize: The desired bitsize for p and q.
     :param e: The public exponent (default is 17).
     """
+    # Example usage with a range of reveal rate values
+    revealrate_values = [i * 0.1 for i in range(1, 11)]  # From 0.1 to 1.0
+
     algorithm1_times = []
     algorithm2_times = []
 
@@ -83,7 +86,5 @@ def performance_test(revealrate_values, bitsize=10, e=17):
     # plt.grid(True)
     # plt.show()
 
-# Example usage with a range of reveal rate values
-revealrate_values = [i * 0.1 for i in range(1, 11)]  # From 0.1 to 1.0
 
-performance_test(revealrate_values)
+

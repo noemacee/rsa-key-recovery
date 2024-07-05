@@ -235,6 +235,19 @@ def int_to_bits_lsb_end(value, length=-1):
     
     return bits
 
+def print_tree(node, level=0):
+    """
+    Recursively prints the tree structure given a root node.
+    
+    :param node: The root node of the tree.
+    :param level: The current level in the tree (used for indentation).
+    """
+    if node is not None:
+        indent = "  " * level
+        print(f"{indent}{repr(node)}")
+        for child in node.children:
+            print_tree(child, level + 1)
+
     
     
     
