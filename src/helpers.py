@@ -36,17 +36,48 @@ def check_kq(kp, kq, N, e):
     """
     Check the validity of kq for a given kp, N, and e.
 
-    :param kp: Integer value of kp
-    :param kq: Integer value of kq
-    :param N: Public value N
-    :param e: Public exponent e
-    :return: Boolean indicating whether kq is valid
+    :param dp_bits: List of bits representing dp.
+    :param dq_bits: List of bits representing dq.
+    :param p_bits: List of bits representing p.
+    :param q_bits: List of bits representing q.
+    :param e: Public exponent for RSA.
+    :param N: Public N.
+    :param kp: Coefficient kp used in the integer relations.
+    :param kq: Coefficient kq used in the integer relations.
+    :return: Boolean indicating whether the derived values satisfy the integer relations
     """
     left_hand_side = (kp - 1) * (kq - 1) % e
     right_hand_side = kp * kq * N % e
     return left_hand_side == right_hand_side
 
+def verify_dp_dq(dp_bits, dq_bits, p_bits, q_bits, e, N, kp,kq):
+    """
+    Check the validity of all the derived rsa components against the integer relations
 
+    Args:
+    - dp_bits (list): List of bits representing dp.
+    - dq_bits (list): List of bits representing dq.
+    - p_bits (list): List of bits representing p.
+    - q_bits (list): List of bits representing q.
+    - e (int): Public exponent for RSA.
+    - N (int): Public N.
+    - kp (int): Coefficient kp used in the integer relations.
+    - kq (int): Coefficient kq used in the integer relations.
+
+    Returns:
+    - bool: True if all derived values satisfy the integer relations, False otherwise.
+    """
+
+    dp = bits_to_int(dp_bits)
+    dq = bits_to_int(dq_bits)
+
+    lhs_p = (((e*dp) - 1 + kp))
+    lhs_q = (((e*dq) - 1 + kq))
+    
+    bol1 = (((bits_to_int(p_bits) * kp )) == lhs_p)
+    bol2 = (((bits_to_int(q_bits) * kq)) == lhs_q)
+    bol3 = (bits_to_int(p_bits) * bits_to_int(q_bits) == N)
+    return bol1 and bol2 and bol3   
 
 def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     """

@@ -11,6 +11,7 @@ def main():
     parser.add_argument('--revealrate', type=float, default=0.5, help='Bit reveal rate for testing')
     parser.add_argument('--bitsize', type=int, default=10, help='Bit size for RSA components')
     parser.add_argument('--e', type=int, default=17, help='Public exponent for RSA')
+    parser.add_argument('--print_tree', action='store_true', help='Print the tree structure of the solutions')
     args = parser.parse_args()
 
     if args.test:
@@ -90,7 +91,11 @@ def main():
             dp = bits_to_int(dp)
             dq = bits_to_int(dq)
 
-            # print_tree(root_node)
+            if args.print_tree:
+                # Print the tree structure
+                print("Tree Structure:")
+                print_tree(root_node)
+                print()
 
             print("Solution found:")
             print(f"Recovered p: {p}")
@@ -143,10 +148,12 @@ def main():
             dp = bits_to_int(dp)
             dq = bits_to_int(dq)
 
-            # Print the tree structure
-            # print("Tree Structure:")
-            # print_tree(root_node)
-            # print()
+            if args.print_tree:
+                # Print the tree structure
+                print("Tree Structure:")
+                print_tree(root_node)
+                print()
+            
 
             # Print the recovered values
             print("Solution Found:")

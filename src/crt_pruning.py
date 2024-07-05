@@ -54,10 +54,11 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
         p_bits, q_bits, dp_bits, dq_bits, i = node.p_bits, node.q_bits, node.dp_bits, node.dq_bits, node.bit_pos
              
         if i == bit_length:
-            if is_valid(p_bits, q_bits, i, N) and (bits_to_int(p_bits) * bits_to_int(q_bits) == N):
+
+            if  verify_dp_dq(dp_bits,dq_bits,p_bits,q_bits,e,N,kp,kq):
                 return p_bits, q_bits, dp_bits, dq_bits, root_node, kp, kq
 
-        elif i < bit_length:
+        elif i < bit_length:    
             dp_bits = set_bit(dp_bits, i, known_bits_dp[i])
             dq_bits = set_bit(dq_bits, i, known_bits_dq[i])
 
