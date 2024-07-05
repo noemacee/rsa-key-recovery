@@ -1,6 +1,6 @@
 from math import ceil, log, gcd
 from rsa import generate_prime
-from sympy import mod_inverse
+from rsa import mod_inverse
 from helpers import *
 
 class TreeNode:
@@ -109,7 +109,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
             node.children = valid_children
     return None
 
-def branch_and_prune(N, e, known_bits_dp, known_bits_dq):
+def branch_and_prune_crt(N, e, known_bits_dp, known_bits_dq):
     """
     Branch and prune algorithm to factorize N, knowing non-consecutive bits of the secret values p and q.
 
@@ -147,7 +147,7 @@ e = 17
 known_bits_dp = [-1, 0, -1, -1, 1]
 known_bits_dq = [-1, -1, -1, 0, -1]
 
-result = branch_and_prune(N, e, known_bits_dp, known_bits_dq)
+result = branch_and_prune_crt(N, e, known_bits_dp, known_bits_dq)
 
 if result is None:
     print("No solution found")
@@ -202,7 +202,7 @@ print()
 
 # Attempt to find the factors p and q using the branch and prune algorithm
 print("Finding factors p and q using branch and prune algorithm...")
-result = branch_and_prune(N, e, dp_erased, dq_erased)
+result = branch_and_prune_crt(N, e, dp_erased, dq_erased)
 
 if result is None:
     print("No solution found.")
@@ -214,9 +214,9 @@ else:
     dq = bits_to_int(dq)
 
     # Print the tree structure
-    print("Tree Structure:")
-    print_tree(root_node)
-    print()
+    # print("Tree Structure:")
+    # print_tree(root_node)
+    # print()
 
     # Print the recovered values
     print("Solution Found:")

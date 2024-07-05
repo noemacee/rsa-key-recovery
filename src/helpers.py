@@ -1,5 +1,5 @@
 from rsa import generate_prime,generate_keypair
-from sympy import mod_inverse
+from rsa import mod_inverse
 from math import ceil, log, gcd
 import random
 
@@ -32,6 +32,21 @@ def find_kq_from_kp(kp, N, e):
     kq = (rhs * lhs_inv) % e
     return kq
 
+def check_kq(kp, kq, N, e):
+    """
+    Check the validity of kq for a given kp, N, and e.
+
+    :param kp: Integer value of kp
+    :param kq: Integer value of kq
+    :param N: Public value N
+    :param e: Public exponent e
+    :return: Boolean indicating whether kq is valid
+    """
+    left_hand_side = (kp - 1) * (kq - 1) % e
+    right_hand_side = kp * kq * N % e
+    return left_hand_side == right_hand_side
+
+
 
 def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     """
@@ -45,10 +60,18 @@ def find_p_q_from_dp_dq(dp, dq, kp, kq, e, i):
     :param i: The bit position to consider
     :return: The bits of p and q for the given bit posnghjkhgjgition and derived from dp and dq or None if no solution exists
     """
+  
     bit_length = len(dp)
+
+    # sinze p and q are prime theyr lsb must be 1
+    if i == 0:
+        return int_to_bits_lsb_start(1,bit_length), int_to_bits_lsb_start(1,bit_length)
+    
     # convert dp, dq, to integers
     dp = bits_to_int(dp)
     dq = bits_to_int(dq)
+
+
 
     # Calculate the right-hand sides of the congruences
     rhs_p = ((e * dp) - 1 + kp) 
@@ -87,10 +110,10 @@ def root_bits(lsb, bit_length):
 
 def padding_input(bits, size):
     """
-    Pads the shorter array with leading zeros to match the length of the longer array.
+    Pads the input bots to the length of the size
 
-    :param known_bits_p: p bit array
-    :param known_bits_q: q bit array
+    :param bits: List to be padded
+    :param size: Desired size
     :return: padded input
     """
     size_bits = len(bits)
@@ -98,6 +121,21 @@ def padding_input(bits, size):
         bits = [0] * (size - size_bits) + bits
     return bits
 
+def padding_two_inputs(known_bits_p, known_bits_q):
+    """
+    Pads the shorter array with leading zeros to match the length of the longer array.
+
+    :param known_bits_p: p bit array
+    :param known_bits_q: q bit array
+    :return: padded input
+    """
+    bit_length = max(len(known_bits_p), len(known_bits_q))
+    
+    if len(known_bits_p) < bit_length:
+        known_bits_p = [0] * (bit_length - len(known_bits_p)) + known_bits_p
+    if len(known_bits_q) < bit_length:
+        known_bits_q = [0] * (bit_length - len(known_bits_q)) + known_bits_q
+    return known_bits_p,known_bits_q
 
 
 
@@ -232,11 +270,8 @@ def example_generator(reveal_rate, bit_size):
     p_bits = int_to_bits_lsb_end(p)
     q_bits = int_to_bits_lsb_end(q)
 
-    max_bits = max(len(p_bits), len(q_bits))
-
     # Pad p_bits and q_bits to the same length
-    p_bits = padding_input(p_bits, max_bits)
-    q_bits = padding_input(q_bits, max_bits)
+    p_bits, q_bits = padding_two_inputs(p_bits, q_bits)
 
     # Erase bits according to the reveal rate
     p_erased = erase_bits(p_bits, reveal_rate)

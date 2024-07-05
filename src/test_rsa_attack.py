@@ -1,7 +1,7 @@
 import time
 import tracemalloc
 from helpers import bits_to_int
-from crt_pruning import branch_and_prune
+from crt_pruning import branch_and_prune_crt
 from rsa import generate_prime
 
 def generate_test_data(bit_length, e):
@@ -43,7 +43,7 @@ def performance_test(bit_length, e):
     start_time = time.time()
     tracemalloc.start()
     
-    result = branch_and_prune(N, e, known_bits_dp, known_bits_dq)
+    result = branch_and_prune_crt(N, e, known_bits_dp, known_bits_dq)
     
     # Stop measuring memory
     current, peak = tracemalloc.get_traced_memory()

@@ -40,7 +40,7 @@ def run_crt_pruning(revealrate, bitsize, e=17):
     N, dp_bits, dq_bits, dp, dq, dp_erased, dq_erased, p, q = example_generator_crt_pruning(revealrate, bitsize, e)
 
     # Run the branch and prune algorithm
-    result = branch_and_prune(N, dp_erased, dq_erased)
+    result = branch_and_prune_crt(N, e, dp_erased, dq_erased)
 
     end_time = time.time()
     elapsed_time = end_time - start_time
