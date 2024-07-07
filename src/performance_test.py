@@ -2,7 +2,7 @@ from helpers import *
 from branch_prune import branch_and_prune
 from crt_pruning import branch_and_prune_crt
 import time
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 def run_branch_prune(revealrate, bitsize):
     """
@@ -47,44 +47,50 @@ def run_crt_pruning(revealrate, bitsize, e=17):
     
     return elapsed_time, result
 
-def performance_test(bitsize=10, e=17):
-    """
-    Perform performance tests for both algorithms over different reveal rates and plot the results.
-
-    :param revealrate_values: List of reveal rate values to test.
-    :param bitsize: The desired bitsize for p and q.
-    :param e: The public exponent (default is 17).
-    """
-    # Example usage with a range of reveal rate values
+def test_algorithm1(bitsize=10):
     revealrate_values = [i * 0.1 for i in range(1, 11)]  # From 0.1 to 1.0
-
     algorithm1_times = []
-    algorithm2_times = []
 
     for revealrate in revealrate_values:
-        # Test algorithm 1
         time_taken_alg1, result_alg1 = run_branch_prune(revealrate, bitsize)
         algorithm1_times.append(time_taken_alg1)
 
-        # Test algorithm 2
+        # Print results for current reveal rate
+        print(f"\nReveal Rate: {revealrate}")
+        print(f"Algorithm 1 Time: {time_taken_alg1:.4f} seconds, Result: {'Found' if result_alg1 else 'Not Found'}")
+
+    # Plot results for Algorithm 1
+    plt.figure(figsize=(10, 6))
+    plt.plot(revealrate_values, algorithm1_times, marker='o', label='Algorithm 1')
+    plt.title('Performance of Algorithm 1')
+    plt.xlabel('Reveal Rate')
+    plt.ylabel('Time Taken (seconds)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+def test_algorithm2(bitsize=10, e=17):
+    revealrate_values = [i * 0.1 for i in range(1, 11)]  # From 0.1 to 1.0
+    algorithm2_times = []
+
+    for revealrate in revealrate_values:
         time_taken_alg2, result_alg2 = run_crt_pruning(revealrate, bitsize, e)
         algorithm2_times.append(time_taken_alg2)
 
         # Print results for current reveal rate
         print(f"\nReveal Rate: {revealrate}")
-        print(f"Algorithm 1 Time: {time_taken_alg1:.4f} seconds, Result: {'Found' if result_alg1 else 'Not Found'}")
         print(f"Algorithm 2 Time: {time_taken_alg2:.4f} seconds, Result: {'Found' if result_alg2 else 'Not Found'}")
 
-    # Plot results
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(revealrate_values, algorithm1_times, marker='o', label='Algorithm 1')
-    # plt.plot(revealrate_values, algorithm2_times, marker='o', label='Algorithm 2')
-    # plt.title('Performance Comparison of Algorithms')
-    # plt.xlabel('Reveal Rate')
-    # plt.ylabel('Time Taken (seconds)')
-    # plt.legend()
-    # plt.grid(True)
-    # plt.show()
+    # Plot results for Algorithm 2
+    plt.figure(figsize=(10, 6))
+    plt.plot(revealrate_values, algorithm2_times, marker='o', label='Algorithm 2')
+    plt.title('Performance of Algorithm 2')
+    plt.xlabel('Reveal Rate')
+    plt.ylabel('Time Taken (seconds)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
-
-
+# Example usage
+#test_algorithm1(bitsize=20)
+test_algorithm2(bitsize=10, e=17)
