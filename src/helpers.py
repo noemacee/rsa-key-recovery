@@ -50,7 +50,7 @@ def check_kq(kp, kq, N, e):
     right_hand_side = kp * kq * N % e
     return left_hand_side == right_hand_side
 
-def verify_dp_dq(dp_bits, dq_bits, p_bits, q_bits, e, N, kp,kq):
+def verify_integer_relations(dp_bits, dq_bits, p_bits, q_bits, e, N, kp,kq):
     """
     Check the validity of all the derived rsa components against the integer relations
 
@@ -342,7 +342,6 @@ def example_generator_crt_pruning(reveal_rate, bit_size, e):
         phi = (p - 1) * (q - 1)
 
 
-
     # Find dp and dq using the modulo inverse of e
     d = mod_inverse(e, phi)
     dp = d % (p - 1)
@@ -354,7 +353,6 @@ def example_generator_crt_pruning(reveal_rate, bit_size, e):
 
 
     # Pad dp_bits and dq_bits to the same length
-
     N_bits_size = ceil(log(N,2))
     dp_bits = padding_input(dp_bits, N_bits_size)
     dq_bits = padding_input(dq_bits,N_bits_size)
@@ -362,11 +360,6 @@ def example_generator_crt_pruning(reveal_rate, bit_size, e):
     # Erase bits according to the reveal rate
     dp_erased = erase_bits(dp_bits, reveal_rate)
     dq_erased = erase_bits(dq_bits, reveal_rate)
-
-
-
-
-
 
     return N, dp_bits, dq_bits, dp, dq, dp_erased, dq_erased, p, q
 

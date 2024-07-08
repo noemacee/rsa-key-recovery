@@ -31,7 +31,6 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
     :return: Tuple of bit sequences for p and q if found, None otherwise
     """
     
-    
     kq = find_kq_from_kp(kp, N, e)
     if kq is None:
         return None
@@ -54,8 +53,7 @@ def build_tree_and_prune_dfs(N, e, kp, known_bits_dp, known_bits_dq):
         p_bits, q_bits, dp_bits, dq_bits, i = node.p_bits, node.q_bits, node.dp_bits, node.dq_bits, node.bit_pos
              
         if i == bit_length:
-
-            if  verify_dp_dq(dp_bits,dq_bits,p_bits,q_bits,e,N,kp,kq):
+            if  verify_integer_relations(dp_bits,dq_bits,p_bits,q_bits,e,N,kp,kq):
                 return p_bits, q_bits, dp_bits, dq_bits, root_node, kp, kq
 
         elif i < bit_length:    

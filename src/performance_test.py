@@ -3,6 +3,7 @@ from branch_prune import branch_and_prune
 from crt_pruning import branch_and_prune_crt
 import time
 import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 def run_branch_prune(revealrate, bitsize):
     """
