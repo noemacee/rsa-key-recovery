@@ -173,12 +173,3 @@ def compare_algorithms(bitsize=10, e=17):
     plt.legend()
     plt.grid(True)
     plt.show()
-
-# Example usage
-compare_algorithms(bitsize=30, e=17)
-#compare_algorithms(bitsize=10, e=17)
-
-
-# Example usage
-test_algorithm1(bitsize=50)
-#test_algorithm2(bitsize=25, e=17)
